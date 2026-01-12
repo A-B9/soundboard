@@ -18,6 +18,7 @@ import java.util.List;
 // Service classes typically contain business logic and interact with repositories to manage data
 public class SoundService {
 
+    @Autowired
     private final SoundRepository soundRepository;
     private final AudioPlayer audioPlayer;
     private final Path soundDirectory;
@@ -39,12 +40,18 @@ public class SoundService {
             throw new RuntimeException("Could not create sounds directory: " + soundDirectory, e);
         }
     }
-
-    //TODO: implement repo functionality.
-    public void playSound(Long id) throws LineUnavailableException {
-        Sound sound = soundRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Sound not found with id: " + id));
-        audioPlayer.playSound(sound.getFilePath());
+//    public void playSound(Long id) throws LineUnavailableException {
+//        Sound sound = soundRepository.findById(id)
+//                .orElseThrow(() -> new IllegalArgumentException("Sound not found with id: " + id));
+//        audioPlayer.playSound(sound.getFilePath());
+//    }
+    
+    public Sound createSound(Sound sound) {
+        return soundRepository.save(sound);
+    }
+    
+    public void deleteSound(Long id) {
+        soundRepository.deleteById(id);
     }
 
     public List<Sound> getAllSounds() {
