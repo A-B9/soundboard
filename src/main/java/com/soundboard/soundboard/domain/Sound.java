@@ -1,22 +1,39 @@
 package com.soundboard.soundboard.domain;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import com.soundboard.soundboard.util.SoundCategoryEnum;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 //@Getter // can also be swapped with @Data
 //@Setter
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "sounds")
 public class Sound {
+    
+    public Sound() {}
+    public Sound(String name, String filePath, String keyBinding, boolean active) {
+        this.name = name;
+        this.filePath = filePath;
+        this.keyBinding = keyBinding;
+        this.active = active;
+    }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
 
     private String filePath;
+    
+    private SoundCategoryEnum categories;
 
     private String keyBinding;
 
