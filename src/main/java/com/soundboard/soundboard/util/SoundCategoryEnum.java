@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.util;
 
+//TODO: need a ofValue/valueOf conversion for string -> ENUM & enum -> string
 public enum SoundCategoryEnum {
   BATTLE,
   TRAVEL,

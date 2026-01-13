@@ -1,17 +1,16 @@
 package com.soundboard.soundboard.service;
 
 import com.soundboard.soundboard.audio.AudioPlayer;
-import com.soundboard.soundboard.domain.Sound;
+import com.soundboard.soundboard.domain.entities.SoundDTO;
 import com.soundboard.soundboard.repository.SoundRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.sound.sampled.LineUnavailableException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
 
 @Service // Indicates that this class is a service component in Spring, making it eligible for component scanning and dependency injection
@@ -34,11 +33,14 @@ public class SoundService {
 
     // Initialize the sound directory, creating it if it doesn't exist
     private void initDirectory() {
-        try {
-            Files.createDirectories(soundDirectory);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create sounds directory: " + soundDirectory, e);
+        if (!Files.exists(Path.of("./sounds"))) {
+            try {
+                Files.createDirectories(soundDirectory);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not create sounds directory: " + soundDirectory, e);
+            }
         }
+        
     }
 //    public void playSound(Long id) throws LineUnavailableException {
 //        Sound sound = soundRepository.findById(id)
@@ -46,19 +48,20 @@ public class SoundService {
 //        audioPlayer.playSound(sound.getFilePath());
 //    }
     
-    public Sound createSound(Sound sound) {
-        return soundRepository.save(sound);
+    public void createSound(SoundDTO sound) {
+        sound.setCreatedAt(Instant.now());
+        soundRepository.save(sound);
     }
     
     public void deleteSound(Long id) {
         soundRepository.deleteById(id);
     }
 
-    public List<Sound> getAllSounds() {
+    public List<SoundDTO> getAllSounds() {
         return soundRepository.findAll();
     }
 
-    public Sound getSoundById(Long id) {
+    public SoundDTO getSoundById(Long id) {
         return soundRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Sound not found with id: " + id));
     }

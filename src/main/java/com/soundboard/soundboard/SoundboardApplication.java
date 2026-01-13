@@ -1,7 +1,9 @@
 package com.soundboard.soundboard;
 
+import com.soundboard.soundboard.util.TestComponent;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /// convenience annotation that adds a @Configuration, @EnableAutoConfiguration, and @ComponentScan
@@ -13,7 +15,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class SoundboardApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SoundboardApplication.class, args);
+		ApplicationContext context = SpringApplication.run(SoundboardApplication.class, args);
+		
+		TestComponent obj = context.getBean(TestComponent.class);
+		obj.build();
 	}
 
 }
