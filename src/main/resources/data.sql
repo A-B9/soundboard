@@ -2,35 +2,31 @@ INSERT INTO sounds (
     name,
     description,
     created_at,
-    key_binding,
-    duration_seconds,
-    active,
-    categories
+    size,
+    content_type,
+    stored_name
 ) VALUES
 (
     'Airhorn',
     'Classic loud airhorn sound',
     CURRENT_TIMESTAMP,
-    'A',
-    3,
-    TRUE,
-    'BATTLE,CITY'
+    8000000,
+    'audio/mp3',
+    'sounds/airhorn'
 ),
 (
     'Applause',
     'Crowd applause sound',
     CURRENT_TIMESTAMP,
-    'P',
-    8,
-    TRUE,
-    'TENSE,EPIC'
+    3000000,
+    'audio/mp3',
+    'sounds/applause'
 ),
 (
     'Error Buzz',
     'Short error buzzer',
     CURRENT_TIMESTAMP,
-    'E',
-    2,
-    FALSE,
-    'BATTLE,TRAVEL'
+    1000000,
+    'audio/mp3',
+    'sounds/error buzz'
 );
