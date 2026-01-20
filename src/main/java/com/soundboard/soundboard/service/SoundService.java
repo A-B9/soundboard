@@ -1,69 +1,90 @@
 package com.soundboard.soundboard.service;
 
-import com.soundboard.soundboard.audio.AudioPlayer;
-import com.soundboard.soundboard.domain.entities.SoundDTO;
+import com.soundboard.soundboard.domain.AudioStorageProperties;
+import com.soundboard.soundboard.domain.models.SoundDTO;
+import com.soundboard.soundboard.domain.models.SoundEntity;
+import com.soundboard.soundboard.domain.models.requestModels.SoundRequestModel;
+import com.soundboard.soundboard.domain.models.responseModels.GetSoundResponse;
+import com.soundboard.soundboard.mapper.Mapper;
 import com.soundboard.soundboard.repository.SoundRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Instant;
+import java.io.InputStream;
 import java.util.List;
 
 @Service // Indicates that this class is a service component in Spring, making it eligible for component scanning and dependency injection
 // Service classes typically contain business logic and interact with repositories to manage data
 public class SoundService {
-
-    @Autowired
-    private final SoundRepository soundRepository;
-    private final AudioPlayer audioPlayer;
-    private final Path soundDirectory;
-
-    @Autowired
-    public SoundService(SoundRepository soundRepository, AudioPlayer audioPlayer,
-                        @Value("${app.sounds.directory}") String soundDirectory) {
-        this.soundRepository = soundRepository;
-        this.audioPlayer = audioPlayer;
-        this.soundDirectory = Path.of(soundDirectory);
-        initDirectory();
-    }
-
-    // Initialize the sound directory, creating it if it doesn't exist
-    private void initDirectory() {
-        if (!Files.exists(Path.of("./sounds"))) {
-            try {
-                Files.createDirectories(soundDirectory);
-            } catch (IOException e) {
-                throw new RuntimeException("Could not create sounds directory: " + soundDirectory, e);
-            }
-        }
-        
-    }
-//    public void playSound(Long id) throws LineUnavailableException {
-//        Sound sound = soundRepository.findById(id)
-//                .orElseThrow(() -> new IllegalArgumentException("Sound not found with id: " + id));
-//        audioPlayer.playSound(sound.getFilePath());
-//    }
     
-    public void createSound(SoundDTO sound) {
-        sound.setCreatedAt(Instant.now());
-        soundRepository.save(sound);
+    LocalAudioStorageService storageService;
+    AudioStorageProperties properties;
+
+    private final SoundRepository soundRepository;
+    private final Mapper mapper;
+
+    @Autowired
+    public SoundService(SoundRepository soundRepository,
+                        LocalAudioStorageService storageService,
+                        AudioStorageProperties properties,
+                        Mapper mapper) {
+        this.soundRepository = soundRepository;
+        this.properties = properties;
+        this.storageService = storageService;
+        this.mapper = mapper;
+    }
+    
+    public void createSound(SoundRequestModel soundRequest, MultipartFile file) throws IOException {
+        try {
+            SoundEntity soundEntity = mapper.toEntity(soundRequest, file);
+            uploadAudio(file, soundEntity);
+            soundRepository.save(soundEntity);
+        } catch (Exception e) {
+            throw new IOException("Audio could not be stored");
+        }
     }
     
     public void deleteSound(Long id) {
         soundRepository.deleteById(id);
     }
 
-    public List<SoundDTO> getAllSounds() {
-        return soundRepository.findAll();
+    public List<GetSoundResponse> getAllSounds() {
+        return soundRepository.findAll().stream().map(mapper::toGetResponse).toList();
     }
 
-    public SoundDTO getSoundById(Long id) {
-        return soundRepository.findById(id)
+    public GetSoundResponse getSoundById(Long id) {
+        return soundRepository.findById(id).map(mapper::toGetResponse)
                 .orElseThrow(() -> new IllegalArgumentException("Sound not found with id: " + id));
     }
-
+    
+    public Resource getAudioFile(Long id) throws IOException {
+        SoundDTO dto = soundRepository.findById(id).map(mapper::toSoundDTO).orElseThrow();
+        return storageService.getAudioResource(dto.storedName());
+    }
+    
+    public void uploadAudio(MultipartFile file, SoundEntity sound) throws IOException {
+        validateAudio(file);
+        String storagePath;
+        
+        try (InputStream inputStream = file.getInputStream()) {
+            storagePath = storageService.storeAudioFile(inputStream, file.getOriginalFilename());
+        }
+        sound.setStoredName(storagePath);
+        
+    }
+    
+    private void validateAudio(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty, please pass in a file.");
+        }
+        
+        String mimeType = file.getContentType();
+        if (mimeType.equals(null) || !properties.allowedMimeTypes().contains(mimeType)) {
+            throw new IllegalArgumentException("Invalid content-type for the provided file.");
+        }
+    }
+    
 }
