@@ -33,4 +33,6 @@ build/
 .vscode/
 
 
-*.db
+#H2
+*.mv.db
+*.trace.db

@@ -1,11 +1,11 @@
 package com.soundboard.soundboard.web;
 
-import com.soundboard.soundboard.domain.models.AudioFileDTO;
 import com.soundboard.soundboard.domain.models.SoundEntity;
 import com.soundboard.soundboard.domain.models.requestModels.SoundRequestModel;
 import com.soundboard.soundboard.domain.models.responseModels.CreateSoundResponse;
 import com.soundboard.soundboard.domain.models.responseModels.GetSoundResponse;
 import com.soundboard.soundboard.service.SoundService;
+import jakarta.validation.Valid;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,7 +38,7 @@ public class SoundController {
     }
     
     @PostMapping(value = "/sounds", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<CreateSoundResponse> createSound(@RequestPart("soundRequest") SoundRequestModel soundRequest,
+    public ResponseEntity<CreateSoundResponse> createSound(@Valid @RequestPart("soundRequest") SoundRequestModel soundRequest,
                                                            @RequestPart("file") MultipartFile file) throws IOException {
         
         soundService.createSound(soundRequest, file);
