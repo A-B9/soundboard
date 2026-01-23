@@ -1,4 +1,4 @@
-package com.soundboard.soundboard.domain;
+package com.soundboard.soundboard.audio;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

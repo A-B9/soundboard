@@ -1,4 +1,4 @@
-package com.soundboard.soundboard.domain.models;
+package com.soundboard.soundboard.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

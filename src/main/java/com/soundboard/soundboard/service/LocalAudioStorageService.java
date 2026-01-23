@@ -1,6 +1,6 @@
 package com.soundboard.soundboard.service;
 
-import com.soundboard.soundboard.domain.AudioStorageProperties;
+import com.soundboard.soundboard.audio.AudioStorageProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;

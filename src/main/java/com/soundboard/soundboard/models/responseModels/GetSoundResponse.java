@@ -1,4 +1,4 @@
-package com.soundboard.soundboard.domain.models.responseModels;
+package com.soundboard.soundboard.models.responseModels;
 
 public record GetSoundResponse(
         Long id,
@@ -6,5 +6,5 @@ public record GetSoundResponse(
         String description,
         String contentType,
         long size
-) {
+) implements ResponseBodyModel {
 }

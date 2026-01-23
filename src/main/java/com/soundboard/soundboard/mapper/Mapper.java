@@ -1,10 +1,9 @@
 package com.soundboard.soundboard.mapper;
 
-import com.soundboard.soundboard.domain.models.AudioFileDTO;
-import com.soundboard.soundboard.domain.models.SoundDTO;
-import com.soundboard.soundboard.domain.models.SoundEntity;
-import com.soundboard.soundboard.domain.models.requestModels.SoundRequestModel;
-import com.soundboard.soundboard.domain.models.responseModels.GetSoundResponse;
+import com.soundboard.soundboard.models.SoundDTO;
+import com.soundboard.soundboard.models.SoundEntity;
+import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
+import com.soundboard.soundboard.models.responseModels.GetSoundResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,18 +20,6 @@ public class Mapper  {
             entity.getCreatedAt(),
             entity.getStoredName(),
             entity.getSize());
-  }
-  
-  public AudioFileDTO toAudioFileDTO(SoundEntity entity) {
-    return new AudioFileDTO(
-            entity.getName(),
-            entity.getContentType(),
-            entity.getContentType(),
-            entity.getStoredName(),
-            entity.getSize(),
-            entity.getCreatedAt(),
-            entity.getId()
-    );
   }
   
   public SoundEntity toEntity(SoundRequestModel soundRequestModel, MultipartFile file) throws IOException {

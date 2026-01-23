@@ -1,4 +1,4 @@
-package com.soundboard.soundboard.domain.models.requestModels;
+package com.soundboard.soundboard.models.requestModels;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,5 +10,5 @@ public record SoundRequestModel(
 
         @NotBlank(message = "Please provide a description")
         @NotNull
-        String description) {
+        String description) implements RequestBodyModel {
 }

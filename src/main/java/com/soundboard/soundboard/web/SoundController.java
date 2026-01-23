@@ -1,9 +1,10 @@
 package com.soundboard.soundboard.web;
 
-import com.soundboard.soundboard.domain.models.requestModels.SoundRequestModel;
-import com.soundboard.soundboard.domain.models.SoundEntity;
-import com.soundboard.soundboard.domain.models.responseModels.CreateSoundResponse;
-import com.soundboard.soundboard.domain.models.responseModels.GetSoundResponse;
+import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
+import com.soundboard.soundboard.models.SoundEntity;
+import com.soundboard.soundboard.models.responseModels.CreateSoundResponse;
+import com.soundboard.soundboard.models.responseModels.GetSoundResponse;
+import com.soundboard.soundboard.models.responseModels.ResponseBodyModel;
 import com.soundboard.soundboard.service.SoundService;
 import jakarta.validation.Valid;
 import org.springframework.core.io.Resource;
@@ -28,8 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
-
 @RestController
 @CrossOrigin //CORS
 @RequestMapping("/api/soundboard")
@@ -46,7 +45,7 @@ public class SoundController {
     public ResponseEntity<CreateSoundResponse> createSound(@Valid @RequestPart("soundRequest") SoundRequestModel soundRequest,
                                                            @RequestPart("file") MultipartFile file) throws IOException {
         
-        soundService.createSound(soundRequest, file);
+        soundService.create(soundRequest, file);
         return ResponseEntity.status(HttpStatus.CREATED.value())
                 .body(new CreateSoundResponse(
                         soundRequest.name(),
@@ -56,7 +55,7 @@ public class SoundController {
     
     @GetMapping("/sounds")
     @ResponseBody
-    public ResponseEntity<Page<GetSoundResponse>> getAllSounds(
+    public ResponseEntity<Page<ResponseBodyModel>> getAllSounds(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -65,20 +64,20 @@ public class SoundController {
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(soundService.getAllSounds(pageable)
+                .body(soundService.getAll(pageable)
                 );
     }
     
     @GetMapping("/sounds/{id}")
     public ResponseEntity<GetSoundResponse> getSound(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(soundService.getSoundById(id)
+                .body(soundService.getById(id)
                 );
     }
     
     @DeleteMapping("/sounds/{id}")
     public ResponseEntity<SoundEntity> deleteSound(@PathVariable Long id) {
-        soundService.deleteSound(id);
+        soundService.delete(id);
         return ResponseEntity.accepted()
                 .body(null);
     }
