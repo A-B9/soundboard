@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+
 @RestController
 @CrossOrigin //CORS
 @RequestMapping("/api/soundboard")
@@ -42,9 +44,11 @@ public class SoundController {
     }
     
     @PostMapping(value = "/sounds", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<CreateSoundResponse> createSound(@Valid @RequestPart("soundRequest") SoundRequestModel soundRequest,
+    public ResponseEntity<ResponseBodyModel> createSound(@Valid @RequestPart("soundRequest") SoundRequestModel soundRequest,
                                                            @RequestPart("file") MultipartFile file) throws IOException {
-        
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(null);
+        }
         soundService.create(soundRequest, file);
         return ResponseEntity.status(HttpStatus.CREATED.value())
                 .body(new CreateSoundResponse(
@@ -80,6 +84,13 @@ public class SoundController {
         soundService.delete(id);
         return ResponseEntity.accepted()
                 .body(null);
+    }
+    
+    @GetMapping("sounds/search")
+    public ResponseEntity<List<GetSoundResponse>> searchSound(@RequestParam String keyword) {
+        return ResponseEntity.ok().body(
+                soundService.searchSound(keyword)
+        );
     }
     
     @GetMapping("/sounds/{id}/download")

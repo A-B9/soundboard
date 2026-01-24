@@ -17,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+
 @Service // Indicates that this class is a service component in Spring, making it eligible for component scanning and dependency injection
 // Service classes typically contain business logic and interact with repositories to manage data
 public class SoundService implements IService{
@@ -86,6 +88,10 @@ public class SoundService implements IService{
         if (mimeType.equals(null) || !properties.allowedMimeTypes().contains(mimeType)) {
             throw new IllegalArgumentException("Invalid content-type for the provided file.");
         }
+    }
+    
+    public List<GetSoundResponse> searchSound(String keyword) {
+        return soundRepository.search(keyword).stream().map(mapper::toGetResponse).toList();
     }
     
 }
