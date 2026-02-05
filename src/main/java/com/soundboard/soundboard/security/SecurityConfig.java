@@ -30,6 +30,7 @@ public class SecurityConfig {
 
     return httpSecurity
             .csrf(customizer -> customizer.disable()) // remove csrf
+            .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(
                     request -> request
                             .requestMatchers("/register", "/login")
@@ -37,10 +38,8 @@ public class SecurityConfig {
                             .anyRequest().authenticated() // ensure that all requests can only be called by authenticated users.
             )
             .httpBasic(Customizer.withDefaults()) //configures basic authentication
-            
-            .sessionManagement(
-                    session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no sessions are ever created or used if provided.
-            ).build();
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // no sessions are ever created or used if provided.
+            .build();
 
   }
   
