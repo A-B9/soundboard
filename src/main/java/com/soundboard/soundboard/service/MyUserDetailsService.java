@@ -7,25 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import static com.soundboard.soundboard.util.Constants.BCRYPT_STRENGTH;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
   
-  
-  
   @Autowired
   private MyUserRepo userRepo;
-  
-  BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(BCRYPT_STRENGTH);
-  
-  public Users registerUser(Users user) {
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    return userRepo.save(user);
-  }
   
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
