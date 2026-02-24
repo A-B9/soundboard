@@ -28,6 +28,7 @@ public class SoundEntity {
     private Instant createdAt;
     private String storedName;
     private long size;
+    String ownedTo;
     
     public SoundEntity() {}
     
@@ -35,13 +36,14 @@ public class SoundEntity {
     public SoundEntity(String name, String description,
                        String contentType, byte[] audioFile,
                        Instant createdAt, String storedName,
-                       long size) {
+                       String ownedTo, long size) {
         this.name = name;
         this.description = description;
         this.contentType = contentType;
         this.audioFile = audioFile;
         this.createdAt = createdAt;
         this.storedName = storedName;
+        this.ownedTo = ownedTo;
         this.size = size;
     }
     

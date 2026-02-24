@@ -13,15 +13,17 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 @Service // Indicates that this class is a service component in Spring, making it eligible for component scanning and dependency injection
 // Service classes typically contain business logic and interact with repositories to manage data
-public class SoundService implements IService{
+public class SoundService {
     
     LocalAudioStorageService storageService;
     AudioStorageProperties properties;
@@ -40,11 +42,16 @@ public class SoundService implements IService{
         this.mapper = mapper;
     }
     
-    public void create(SoundRequestModel soundRequest, MultipartFile file) throws IOException {
+    public void create(SoundRequestModel soundRequest,
+                       MultipartFile file,
+                       String username) throws IOException {
         try {
+            
             SoundEntity soundEntity = mapper.toEntity(soundRequest, file);
+            soundEntity.setOwnedTo(username);
             uploadAudio(file, soundEntity);
             soundRepository.save(soundEntity);
+            
         } catch (Exception e) {
             throw new IOException("Audio could not be stored");
         }
@@ -54,17 +61,21 @@ public class SoundService implements IService{
         soundRepository.deleteById(id);
     }
 
-    public Page<ResponseBodyModel> getAll(Pageable pageable) {
-        return soundRepository.findAll(pageable).map(mapper::toGetResponse);
+    @Transactional(readOnly = true)
+    public Page<ResponseBodyModel> getAll(Pageable pageable, String username) {
+        return soundRepository.findAllByOwnedTo(pageable, username).map(mapper::toGetResponse);
     }
 
-    public GetSoundResponse getById(Long id) {
-        return soundRepository.findById(id).map(mapper::toGetResponse)
+    @Transactional(readOnly = true)
+    public GetSoundResponse getById(Long id, String username) {
+        return soundRepository.findByIdAndOwnedTo(id, username).map(mapper::toGetResponse)
                 .orElseThrow(() -> new IllegalArgumentException("Sound not found with id: " + id));
     }
     
-    public Resource getAudioFile(Long id) throws IOException {
-        SoundDTO dto = soundRepository.findById(id).map(mapper::toSoundDTO).orElseThrow();
+    @Transactional(readOnly = true)
+    public Resource getAudioFile(Long id, String username) throws IOException {
+        Optional<SoundEntity> temp = soundRepository.findByIdAndOwnedTo(id, username);
+        SoundDTO dto = temp.map(mapper::toSoundDTO).orElseThrow();
         return storageService.getAudioResource(dto.storedName());
     }
     

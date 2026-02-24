@@ -30,6 +30,7 @@ public class Mapper  {
             file.getBytes(),
             Instant.now(),
             null,
+            null,
             file.getSize());
   }
   

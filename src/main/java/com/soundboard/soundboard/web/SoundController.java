@@ -16,6 +16,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,11 +47,12 @@ public class SoundController {
     
     @PostMapping(value = "/sounds", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseBodyModel> createSound(@Valid @RequestPart("soundRequest") SoundRequestModel soundRequest,
-                                                           @RequestPart("file") MultipartFile file) throws IOException {
+                                                         @RequestPart("file") MultipartFile file,
+                                                         @AuthenticationPrincipal UserDetails userDetails) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(null);
         }
-        soundService.create(soundRequest, file);
+        soundService.create(soundRequest, file, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED.value())
                 .body(new CreateSoundResponse(
                         soundRequest.name(),
@@ -63,19 +66,21 @@ public class SoundController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "true") boolean ascending
+            @RequestParam(defaultValue = "true") boolean ascending,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(soundService.getAll(pageable)
+                .body(soundService.getAll(pageable, userDetails.getUsername())
                 );
     }
     
     @GetMapping("/sounds/{id}")
-    public ResponseEntity<GetSoundResponse> getSound(@PathVariable Long id) {
+    public ResponseEntity<GetSoundResponse> getSound(@PathVariable Long id,
+                                                     @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(soundService.getById(id)
+                .body(soundService.getById(id, userDetails.getUsername())
                 );
     }
     
@@ -95,11 +100,12 @@ public class SoundController {
     
     @GetMapping("/sounds/{id}/download")
     public ResponseEntity<Resource> getAudioFile(
-            @PathVariable Long id
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails
     ) throws IOException {
         
         try {
-            Resource audioResource = soundService.getAudioFile(id);
+            Resource audioResource = soundService.getAudioFile(id, userDetails.getUsername());
             
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType("audio/wav"))
