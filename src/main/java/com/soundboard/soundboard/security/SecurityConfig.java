@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.security;
 
+import com.soundboard.soundboard.security.filter.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static com.soundboard.soundboard.util.Constants.BCRYPT_STRENGTH;
 
@@ -24,6 +26,9 @@ public class SecurityConfig {
   
   @Autowired
   private UserDetailsService userDetailsService;
+  
+  @Autowired
+  private JwtFilter jwtFilter;
   
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
@@ -39,6 +44,7 @@ public class SecurityConfig {
             )
             .httpBasic(Customizer.withDefaults()) //configures basic authentication
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // no sessions are ever created or used if provided.
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
 
   }
