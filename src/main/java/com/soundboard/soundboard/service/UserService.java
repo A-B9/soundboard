@@ -1,43 +1,60 @@
 package com.soundboard.soundboard.service;
 
 import com.soundboard.soundboard.models.Users;
+import com.soundboard.soundboard.models.responseModels.user.LoginResponse;
+import com.soundboard.soundboard.models.responseModels.user.RegisterResponse;
 import com.soundboard.soundboard.repository.MyUserRepo;
 import com.soundboard.soundboard.security.JWTService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import static com.soundboard.soundboard.util.Constants.BCRYPT_STRENGTH;
 
 @Service
 public class UserService {
-  @Autowired
+  
   private MyUserRepo userRepo;
-  
-  @Autowired
   AuthenticationManager authenticationManager;
-  
-  @Autowired
   JWTService jwtService;
+  PasswordEncoder passwordEncoder;
   
-  BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(BCRYPT_STRENGTH);
+  public UserService(MyUserRepo userRepo,
+                     AuthenticationManager authenticationManager,
+                     JWTService jwtService,
+                     PasswordEncoder passwordEncoder) {
+    this.userRepo = userRepo;
+    this.authenticationManager = authenticationManager;
+    this.jwtService = jwtService;
+    this.passwordEncoder = passwordEncoder;
   
-  public Users registerUser(Users user) {
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    return userRepo.save(user);
   }
   
-  public String verify(Users user) {
+  public RegisterResponse registerUser(Users user) {
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    userRepo.save(user);
+    return RegisterResponse.builder()
+            .username(user.getUsername())
+            .message("User registered successfully")
+            .build();
+  }
+  
+  public LoginResponse verify(Users user) {
     Authentication authentication =
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
             );
-    if (authentication.isAuthenticated()) return jwtService.generateToken(user.getUsername());
+    if (authentication.isAuthenticated()) return LoginResponse.builder()
+            .username(user.getUsername())
+            .token(jwtService.generateToken(user.getUsername()))
+            .message("User authenticated successfully")
+            .build();
     
-    return "Fail";
+    return LoginResponse.builder()
+            .username(user.getUsername())
+            .token("")
+            .message("Invalid username or password")
+            .build();
     
   }
 }

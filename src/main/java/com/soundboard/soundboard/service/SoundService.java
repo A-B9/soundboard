@@ -2,12 +2,12 @@ package com.soundboard.soundboard.service;
 
 import com.soundboard.soundboard.models.SoundDTO;
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
-import com.soundboard.soundboard.models.responseModels.ResponseBodyModel;
-import com.soundboard.soundboard.mapper.Mapper;
+import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
+import com.soundboard.soundboard.mapper.IMapper;
 import com.soundboard.soundboard.repository.SoundRepository;
 import com.soundboard.soundboard.audio.AudioStorageProperties;
 import com.soundboard.soundboard.models.SoundEntity;
-import com.soundboard.soundboard.models.responseModels.GetSoundResponse;
+import com.soundboard.soundboard.models.responseModels.sound.GetSoundResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -29,13 +29,13 @@ public class SoundService {
     AudioStorageProperties properties;
 
     private final SoundRepository soundRepository;
-    private final Mapper mapper;
+    private final IMapper mapper;
 
     @Autowired
     public SoundService(SoundRepository soundRepository,
                         LocalAudioStorageService storageService,
                         AudioStorageProperties properties,
-                        Mapper mapper) {
+                        IMapper mapper) {
         this.soundRepository = soundRepository;
         this.properties = properties;
         this.storageService = storageService;
@@ -66,7 +66,7 @@ public class SoundService {
         return soundRepository.findAllByOwnedTo(pageable, username).map(mapper::toGetResponse);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) // Indicates that this method should be executed within a read-only transaction, which can optimize performance for read operations
     public GetSoundResponse getById(Long id, String username) {
         return soundRepository.findByIdAndOwnedTo(id, username).map(mapper::toGetResponse)
                 .orElseThrow(() -> new IllegalArgumentException("Sound not found with id: " + id));

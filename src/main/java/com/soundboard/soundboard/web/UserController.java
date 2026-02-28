@@ -1,6 +1,8 @@
 package com.soundboard.soundboard.web;
 
 import com.soundboard.soundboard.models.Users;
+import com.soundboard.soundboard.models.responseModels.user.RegisterResponse;
+import com.soundboard.soundboard.models.responseModels.user.LoginResponse;
 import com.soundboard.soundboard.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,12 +16,12 @@ public class UserController {
   UserService userService;
   
   @PostMapping("/register")
-  public Users registerUser(@RequestBody Users user) {
+  public RegisterResponse registerUser(@RequestBody Users user) {
     return userService.registerUser(user);
   }
   
   @PostMapping("/login")
-  public String login(@RequestBody Users user) {
+  public LoginResponse login(@RequestBody Users user) {
     return userService.verify(user);
   }
   

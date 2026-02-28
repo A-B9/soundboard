@@ -1,7 +1,7 @@
 package com.soundboard.soundboard.service;
 
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
-import com.soundboard.soundboard.models.responseModels.ResponseBodyModel;
+import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

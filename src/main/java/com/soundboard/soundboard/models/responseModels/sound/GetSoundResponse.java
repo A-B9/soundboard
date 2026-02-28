@@ -1,4 +1,4 @@
-package com.soundboard.soundboard.models.responseModels;
+package com.soundboard.soundboard.models.responseModels.sound;
 
 public record GetSoundResponse(
         Long id,

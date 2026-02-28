@@ -2,9 +2,9 @@ package com.soundboard.soundboard.web;
 
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
 import com.soundboard.soundboard.models.SoundEntity;
-import com.soundboard.soundboard.models.responseModels.CreateSoundResponse;
-import com.soundboard.soundboard.models.responseModels.GetSoundResponse;
-import com.soundboard.soundboard.models.responseModels.ResponseBodyModel;
+import com.soundboard.soundboard.models.responseModels.sound.CreateSoundResponse;
+import com.soundboard.soundboard.models.responseModels.sound.GetSoundResponse;
+import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
 import com.soundboard.soundboard.service.SoundService;
 import jakarta.validation.Valid;
 import org.springframework.core.io.Resource;
@@ -41,7 +41,6 @@ public class SoundController {
     private final SoundService soundService;
 
     public SoundController(SoundService soundService) {
-        // Constructor injection
         this.soundService = soundService;
     }
     
@@ -103,10 +102,8 @@ public class SoundController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws IOException {
-        
         try {
             Resource audioResource = soundService.getAudioFile(id, userDetails.getUsername());
-            
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType("audio/wav"))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
