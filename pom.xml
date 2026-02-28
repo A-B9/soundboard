@@ -39,6 +39,8 @@
 		<mapstruct.version>1.6.3</mapstruct.version>
 		<test-containers.version>1.21.4</test-containers.version>
 		<mapstruct-processor-plugin.version>1.6.3</mapstruct-processor-plugin.version>
+		<maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
+		<spotbugs-maven-plugin.version>4.8.6.4</spotbugs-maven-plugin.version>
 	</properties>
 
 
@@ -204,14 +206,26 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-<!--				<configuration>-->
-<!--					<excludes>-->
-<!--						<exclude>-->
-<!--							<groupId>org.projectlombok</groupId>-->
-<!--							<artifactId>lombok</artifactId>-->
-<!--						</exclude>-->
-<!--					</excludes>-->
-<!--				</configuration>-->
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>${maven-checkstyle-plugin.version}</version>
+				<configuration>
+					<configLocation>sun_checks.xml</configLocation> <!-- or google_checks, sun_checks.xml -->
+					<failsOnError>true</failsOnError>
+					<consoleOutput>true</consoleOutput>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs-maven-plugin.version}</version>
+				<configuration>
+					<effort>Max</effort>         <!-- Low, Default, or Max — how deep to analyse -->
+					<threshold>Medium</threshold> <!-- Min severity to report: Low, Medium, High -->
+					<failOnError>true</failOnError>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
