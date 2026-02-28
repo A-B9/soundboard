@@ -32,7 +32,14 @@ build/
 ### VS Code ###
 .vscode/
 
-
 #H2
 *.mv.db
 *.trace.db
+
+
+*.env
+.env
+/src/main/resources/application-dev.properties
+/src/main/resources/application-prod.properties
+/src/main/resources/application-test.properties
+/db/password.txt
