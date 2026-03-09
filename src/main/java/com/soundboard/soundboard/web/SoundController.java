@@ -7,6 +7,7 @@ import com.soundboard.soundboard.models.responseModels.sound.GetSoundResponse;
 import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
 import com.soundboard.soundboard.service.SoundService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +47,7 @@ public class SoundController {
     
     @PostMapping(value = "/sounds", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseBodyModel> createSound(@Valid @RequestPart("soundRequest") SoundRequestModel soundRequest,
-                                                         @RequestPart("file") MultipartFile file,
+                                                         @NotNull @RequestPart("file") MultipartFile file,
                                                          @AuthenticationPrincipal UserDetails userDetails) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(null);

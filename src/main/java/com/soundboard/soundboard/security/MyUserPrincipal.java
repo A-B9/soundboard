@@ -11,7 +11,7 @@ import java.util.Collections;
 
 public class MyUserPrincipal implements UserDetails {
   
-  private Users user;
+  private final transient Users user;
   
   public MyUserPrincipal(Users user) {
     this.user = user;
@@ -37,27 +37,23 @@ public class MyUserPrincipal implements UserDetails {
   public boolean isAccountNonExpired() {
     //assume account is not expired.
     return true;
-//    return UserDetails.super.isAccountNonExpired();
   }
   
   @Override
   public boolean isAccountNonLocked() {
     //assume account is not locked
     return true;
-//    return UserDetails.super.isAccountNonLocked();
   }
   
   @Override
   public boolean isCredentialsNonExpired() {
     //assume credentials are not expired
     return true;
-//    return UserDetails.super.isCredentialsNonExpired();
   }
   
   @Override
   public boolean isEnabled() {
     // assume account is enabled
     return true;
-//    return UserDetails.super.isEnabled();
   }
 }
