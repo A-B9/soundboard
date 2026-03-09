@@ -14,10 +14,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
   
-  private MyUserRepo userRepo;
-  AuthenticationManager authenticationManager;
-  JWTService jwtService;
-  PasswordEncoder passwordEncoder;
+  private final MyUserRepo userRepo;
+  private final AuthenticationManager authenticationManager;
+  private final JWTService jwtService;
+  private final PasswordEncoder passwordEncoder;
   
   public UserService(MyUserRepo userRepo,
                      AuthenticationManager authenticationManager,

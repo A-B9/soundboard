@@ -3,6 +3,7 @@ package com.soundboard.soundboard.audio;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Set;
 
 @ConfigurationProperties(prefix = "app.audio-storage")
@@ -20,5 +21,13 @@ public record AudioStorageProperties(
                     "audio/wave"
             )
     );
+  }
+  
+  public Set<String> getAllowedMimeTypes() {
+    return Collections.unmodifiableSet(allowedMimeTypes);
+  }
+  
+  private void setAllowedMimeTypes() {
+    throw new UnsupportedOperationException("Allowed MIME types are immutable and cannot be modified.");
   }
 }

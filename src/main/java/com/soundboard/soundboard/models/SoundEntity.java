@@ -47,4 +47,11 @@ public class SoundEntity {
         this.size = size;
     }
     
+    public byte[] getAudioFile() {
+        return audioFile != null ? audioFile.clone() : null;
+    }
+    public void setAudioFile(byte[] audioFile) {
+        this.audioFile = audioFile != null ? audioFile.clone() : null;
+    }
+    
 }
