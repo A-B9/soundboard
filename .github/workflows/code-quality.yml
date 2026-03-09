@@ -1,0 +1,200 @@
+name: Code Quality Checker
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  spotbugs:
+    name: Bug Spotter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compile project for SpotBugs
+        run: mvn compile --no-transfer-progress
+
+      - name: Run SpotBugs
+        run: mvn spotbugs:spotbugs --no-transfer-progress
+
+      - name: Generate Spotbugs summary
+        if: always()
+        run: |
+          python3 << 'EOF'
+          import os
+          import sys
+          import xml.etree.ElementTree as ET
+          
+          report_path = 'target/spotbugsXml.xml'
+          
+          if not os.path.exists(report_path):
+              print("SpotBugs report not found.")
+              sys.exit(0)
+          
+          tree = ET.parse(report_path)
+          root = tree.getroot()
+          
+          bugs = []
+          for bug in root.findall('.//BugInstance'):
+            priority = int(bug.get('priority', 3))
+            category = bug.get('category', 'Unknown')
+            bug_type = bug.get('type', 'Unknown')
+            long_msg = bug.find('LongMessage')
+            short_msg = bug.find('ShortMessage')
+            source = bug.find('SourceLine')
+
+            bugs.append({
+                'priority': priority,
+                'severity': {1: 'High', 2: 'Medium', 3: 'Low'}.get(priority, 'Unknown'),
+                'category': category,
+                'type': bug_type,
+                'long_message': long_msg,
+                'short_message': short_msg,
+                'message': (long_msg.text if long_msg is not None else short_msg.text if short_msg is not None else 'No message'),
+                'file': source.get('sourcefile', 'Unknown') if source is not None else 'Unknown',
+                'line': source.get('start', '?') if source is not None else 'Unknown'
+            })
+
+          bugs.sort(key=lambda x: x['priority'])
+
+          high   = [b for b in bugs if b['priority'] == 1]
+          medium = [b for b in bugs if b['priority'] == 2]
+          low    = [b for b in bugs if b['priority'] >= 3]
+
+          icon_map = {'High': '🔴', 'Medium': '🟡', 'Low': '🟢'}
+
+          lines = []
+          lines.append('# 🐛 SpotBugs Report\n')
+          
+          # Summary table
+          lines.append('## Summary\n')
+          lines.append('| Severity | Count |')
+          lines.append('|----------|-------|')
+          lines.append(f'| 🔴 High   | {len(high)}   |')
+          lines.append(f'| 🟡 Medium | {len(medium)} |')
+          lines.append(f'| 🟢 Low    | {len(low)}    |')
+          lines.append(f'| **Total** | **{len(bugs)}** |')
+          lines.append('')
+
+          if not bugs:
+               lines.append('## ✅ No bugs found!')
+          else:
+               lines.append('## Bug Details\n')
+               for b in bugs:
+                  icon = icon_map.get(b['severity'], '⚪')
+                  lines.append(f"### {icon} {b['severity']} — `{b['type']}`")
+                  lines.append(f"| Field | Value |")
+                  lines.append(f"|-------|-------|")
+                  lines.append(f"| **File** | `{b['file']}` line {b['line']} |")
+                  lines.append(f"| **Category** | {b['category']} |")
+                  lines.append(f"| **Description** | {b['message']} |")
+                  lines.append('')
+          
+          report = '\n'.join(lines)
+
+          # Write to the GitHub Actions job summary page
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'w') as f:
+            f.write(report)
+          
+          with open('spotbugs-report.md', 'w') as f:
+              f.write(report)
+
+          if high:
+            print(f'::error::SpotBugs found {len(high)} High severity bug(s). See the summary for details.')
+            sys.exit(1)
+          else:
+            print(f'SpotBugs: { len(medium) } Medium, {len(low)} Low bugs found. Build continues.')
+
+          EOF
+
+      - name: Upload SpotBugs XML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spotbugs-report
+          path: target/spotbugsXml.xml
+
+      - name: Post report to the PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('spotbugs-report.md', 'utf8');
+            
+            const marker = '<!-- spotbugs-report -->';
+            const body = `${marker}\n${report}`;
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner:      context.repo.owner,
+              repo:       context.repo.repo,
+              issue_number: context.issue.number,   // (6) PR number — PRs are issues in GitHub's API
+            });
+            
+            const existing = comments.find(c => c.body.includes(marker));
+            
+            if (existing) {
+              await github.rest.issues.updateComment({
+                  owner:      context.repo.owner,
+                  repo:       context.repo.repo,
+                  comment_id: existing.id,
+                  body:       body,
+              });
+              console.log('Updated existing SpotBugs comment.');
+            } else {
+              await github.rest.issues.createComment({
+                  owner:        context.repo.owner,
+                  repo:         context.repo.repo,
+                  issue_number: context.issue.number,
+                  body:         body,
+                });
+                console.log('Created new SpotBugs comment.');
+            }
+
+
+#  dependency-check:
+#    name: OWASP Dependency Check
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 21
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: '21'
+#          distribution: 'temurin'
+#          cache: maven
+#
+#      - name: Cache NVD database
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/.m2/repository/org/owasp/dependency-check-data
+#          key: nvd-cache-${{ hashFiles('**/pom.xml') }}
+#          restore-keys: nvd-cache-
+#
+#      - name: Run OWASP Dependency Check
+#        run: mvn dependency-check:check --no-transfer-progress
+#
+#      - name: Upload Dependency Report
+#        uses: actions/upload-artifact@v4
+#        if: always()
+#        with:
+#          name: dependency-check-report
+#          path: target/dependency-check-report.html

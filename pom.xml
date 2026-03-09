@@ -39,6 +39,7 @@
 		<mapstruct.version>1.6.3</mapstruct.version>
 		<test-containers.version>1.21.4</test-containers.version>
 		<mapstruct-processor-plugin.version>1.6.3</mapstruct-processor-plugin.version>
+		<spotbugs-maven-plugin.version>4.8.6.4</spotbugs-maven-plugin.version>
 	</properties>
 
 
@@ -204,14 +205,26 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-<!--				<configuration>-->
-<!--					<excludes>-->
-<!--						<exclude>-->
-<!--							<groupId>org.projectlombok</groupId>-->
-<!--							<artifactId>lombok</artifactId>-->
-<!--						</exclude>-->
-<!--					</excludes>-->
-<!--				</configuration>-->
+			</plugin>
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs-maven-plugin.version}</version>
+				<configuration>
+					<effort>Max</effort>         <!-- Low, Default, or Max — how deep to analyse -->
+					<threshold>Medium</threshold> <!-- Min severity to report: Low, Medium, High -->
+					<failOnError>false</failOnError>
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>10.0.3</version>
+				<configuration>
+<!--					<failBuildOnCVSS>7</failBuildOnCVSS>-->
+					<formats>HTML,JSON</formats>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
