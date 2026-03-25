@@ -6,14 +6,14 @@ services:
     container_name: soundboard-postgres-container
     environment:
       - POSTGRES_DB=soundboard
-      - POSTGRES_USER=user
+      - POSTGRES_USER=soundboard_user
       - POSTGRES_PASSWORD=pass #${DB_PASSWORD} # pulled from a .env file
 #      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
     volumes:
       - soundboard-db-data:/var/lib/postgresql/data # local_folder:container_folder
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d soundboard" ]
+      test: [ "CMD-SHELL", "pg_isready -U soundboard_user -d soundboard" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
       - 8080:8080
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/soundboard # where db is the name of the service on line 2
-      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_USERNAME: soundboard_user
       SPRING_DATASOURCE_PASSWORD: pass #${DB_PASSWORD} # pulled from a .env file
       APP_SOUNDS_DIRECTORY: ./sounds
     depends_on:
