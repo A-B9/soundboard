@@ -1,10 +1,12 @@
 package com.soundboard.soundboard.web;
 
+import com.soundboard.soundboard.annotation.CurrentUser;
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
 import com.soundboard.soundboard.models.SoundEntity;
 import com.soundboard.soundboard.models.responseModels.sound.CreateSoundResponse;
 import com.soundboard.soundboard.models.responseModels.sound.GetSoundResponse;
 import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
+import com.soundboard.soundboard.security.MyUserPrincipal;
 import com.soundboard.soundboard.service.SoundService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -78,7 +80,7 @@ public class SoundController {
     
     @GetMapping("/sounds/{id}")
     public ResponseEntity<GetSoundResponse> getSound(@PathVariable Long id,
-                                                     @AuthenticationPrincipal UserDetails userDetails) {
+                                                     @CurrentUser(claim = "username") MyUserPrincipal userDetails) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(soundService.getById(id, userDetails.getUsername())
                 );

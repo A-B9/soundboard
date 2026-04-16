@@ -19,7 +19,16 @@ import java.util.function.Function;
 @Service
 public class JWTService {
   
-  private final String secretKey;
+  private final String secretKey; // currently this key is generated every time the
+  // application is restarted, so all existing tokens will be invalidated.
+  // in a real application, you would likely want to store this key in a secure
+  // location and load it when the application starts up.
+  // you could store this key in an environment variable, a configuration file, or a secure vault.
+  // to get from the environment variable you would use System.getenv("SECRET_KEY") and to get from
+  // a configuration file you would use @Value("${secret.key}") and ensure that the key is set in
+  // the application.properties file.
+  // you could reference the key in the application.properties file like this: secret.key=your_secret_key_here
+  // you can store the key in .env and reference it in the application.properties file like this: secret.key=${SECRET_KEY}
   
   public JWTService() {
     try {
