@@ -31,6 +31,12 @@ public class UserService {
   }
   
   public RegisterResponse registerUser(Users user) {
+    if (userRepo.existsByUsername(user.getUsername())) {
+      return RegisterResponse.builder()
+              .username(user.getUsername())
+              .message("Username already exists")
+              .build();
+    }
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     userRepo.save(user);
     return RegisterResponse.builder()

@@ -1,4 +1,4 @@
 package com.soundboard.soundboard.integration.controller.sound;
 
-public class CreateTests {
+public class DeleteTests {
 }
