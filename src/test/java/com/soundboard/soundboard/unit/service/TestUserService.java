@@ -1,6 +1,7 @@
 package com.soundboard.soundboard.unit.service;
 
-import com.soundboard.soundboard.models.Users;
+import com.soundboard.soundboard.models.requestModels.LoginRequest;
+import com.soundboard.soundboard.models.requestModels.RegisterRequest;
 import com.soundboard.soundboard.models.responseModels.user.LoginResponse;
 import com.soundboard.soundboard.models.responseModels.user.RegisterResponse;
 import com.soundboard.soundboard.repository.MyUserRepo;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,18 +46,14 @@ public class TestUserService {
   
   @Test
   void testRegisterUser_Success() {
-    Users user = Users.builder()
-            .id(1L)
-            .username("TestUser")
-            .password("password")
-            .build();
-  
+    RegisterRequest request = new RegisterRequest("TestUser", "StrongP@ssword123");
+
     RegisterResponse expected = RegisterResponse.builder()
             .username("TestUser")
             .message("User registered successfully")
             .build();
-    
-    RegisterResponse actual = userService.registerUser(user);
+
+    RegisterResponse actual = userService.registerUser(request);
     
     assert actual != null;
     assert actual.username().equals(expected.username());
@@ -65,25 +63,21 @@ public class TestUserService {
   
   @Test
   void testVerfiy_Success() {
-    Users user = Users.builder()
-            .id(1L)
-            .username("TestUser")
-            .password("password")
-            .build();
-    
+    LoginRequest request = new LoginRequest("TestUser", "password");
+
     Authentication authentication = mock(Authentication.class);
     when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
             .thenReturn(authentication);
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtService.generateToken("TestUser")).thenReturn("mockedToken");
-  
+
     LoginResponse expected = LoginResponse.builder()
             .username("TestUser")
             .token("mockedToken")
             .message("User authenticated successfully")
             .build();
-    
-    LoginResponse actual = userService.verify(user);
+
+    LoginResponse actual = userService.verify(request);
     
     assert actual != null;
     assert actual.username().equals(expected.username());
@@ -93,26 +87,19 @@ public class TestUserService {
   
   @Test
   void testVerify_Failure() {
-    Users user = Users.builder()
-            .id(1L)
-            .username("TestUser")
-            .password("wrongPassword")
-            .build();
-    
-    Authentication authentication = mock(Authentication.class);
-    
+    LoginRequest request = new LoginRequest("TestUser", "wrongPassword");
+
     when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authentication);
-    when(authentication.isAuthenticated()).thenReturn(false);
-    
+            .thenThrow(new BadCredentialsException("Bad credentials"));
+
     LoginResponse expected = LoginResponse.builder()
             .username("TestUser")
             .token("")
             .message("Invalid username or password")
             .build();
-    
-    LoginResponse actual = userService.verify(user);
-    
+
+    LoginResponse actual = userService.verify(request);
+
     assert actual != null;
     assert actual.username().equals(expected.username());
     assert actual.token().equals(expected.token());

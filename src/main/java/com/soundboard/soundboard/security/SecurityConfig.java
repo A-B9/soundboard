@@ -2,6 +2,7 @@ package com.soundboard.soundboard.security;
 
 import com.soundboard.soundboard.security.filter.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,11 +14,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
@@ -32,9 +35,12 @@ public class SecurityConfig {
   
   @Autowired
   private JwtFilter jwtFilter;
-  
+
+  @Value("${security.require-https:true}")
+  private boolean requireHttps;
+
   @Bean
-  SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
+  SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
   // what is the spring security filter chain? this is a chain of filters that are
     // applied to every request that comes into the application. each filter can modify the request
     // and response objects and decide whether to continue the chain or not. the order of the
@@ -47,24 +53,29 @@ public class SecurityConfig {
     // - BasicAuthenticationFilter: this filter is responsible for processing basic authentication headers and authenticating the user.
     // - CsrfFilter: this filter is responsible for protecting against cross-site request forgery attacks.
 
-    return httpSecurity
-            .csrf((csrf) -> csrf.disable()) // protect against csrf attacks.
-            .authenticationProvider(authenticationProvider()) // provide custom authentication provider
+    httpSecurity
+            .csrf((csrf) -> csrf.disable())
+            .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(
                     request -> request
-                            .requestMatchers("/register", "/login").permitAll() // allow unauthenticated access to these endpoints
-                            .anyRequest().authenticated() // ensure that all other requests can only be called by authenticated users.
+                            .requestMatchers("/register", "/login").permitAll()
+                            .anyRequest().authenticated()
             )
-            .redirectToHttps(Customizer.withDefaults()) // redirect to https if request is http. this is important for security because it ensures that all communication between the client and server is encrypted.
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // no sessions are ever created or used if provided.
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // add this filter before the default username password filter so that it can check for jwt token and authenticate user before the request is processed by the default filter.
-            .passwordManagement((passwordManager) -> passwordManager.changePasswordPage("/change-password")) // provide custom change password page
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .passwordManagement((passwordManager) -> passwordManager.changePasswordPage("/change-password"))
             .logout((logout) ->
                     logout.deleteCookies("SOME_COOKIE")
-                            .invalidateHttpSession(true) // not needed since we are stateless but good practice to invalidate session on logout.
+                            .invalidateHttpSession(true)
                             .logoutUrl("/logout")
-                            .logoutSuccessUrl("/logouts-success"))
-            .build();
+                            .logoutSuccessUrl("/logouts-success"));
+
+    if (requireHttps) {
+      httpSecurity.redirectToHttps(Customizer.withDefaults());
+    }
+
+    return httpSecurity.build();
 
   }
   
