@@ -2,6 +2,7 @@ package com.soundboard.soundboard.security.filter;
 
 import com.soundboard.soundboard.security.JWTService;
 import com.soundboard.soundboard.service.MyUserDetailsService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,8 +38,12 @@ public class JwtFilter extends OncePerRequestFilter { // filter executed only on
     
     if (authHeader != null && authHeader.startsWith("Bearer ")) {
       token = authHeader.substring(7);
-      username = jwtService.extractUserName(token);
-      
+      try {
+        username = jwtService.extractUserName(token);
+      } catch (JwtException e) {
+        filterChain.doFilter(request, response);
+        return;
+      }
     }
   
     // ensure user not already authenticated.

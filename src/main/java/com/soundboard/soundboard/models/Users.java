@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Entity
 @Getter
 @Builder
@@ -18,11 +20,17 @@ public class Users {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  
+
   private String username;
-  
+
   private String password;
-  
+
+  private Instant createdAt;
+
+  private boolean active = true;
+
+  private String displayName;
+
   public void setPassword(String password) {
     this.password = password;
   }

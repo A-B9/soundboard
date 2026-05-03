@@ -12,16 +12,16 @@ import java.util.Optional;
 
 @Repository
 public interface SoundRepository extends JpaRepository<SoundEntity, Long> {
-  
+
   @Query("""
     SELECT s
     FROM SoundEntity s
     WHERE LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
   """)
   List<SoundEntity> search(String keyword);
-  
-  Page<SoundEntity> findAllByOwnedTo(Pageable pageable, String ownedTo);
-  
-  Optional<SoundEntity> findByIdAndOwnedTo(Long id, String ownedTo);
+
+  Page<SoundEntity> findAllByOwnedBy(Pageable pageable, String ownedBy);
+
+  Optional<SoundEntity> findByIdAndOwnedBy(Long id, String ownedBy);
 
 }

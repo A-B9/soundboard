@@ -1,15 +1,16 @@
 package com.soundboard.soundboard.models;
 
-import jakarta.persistence.Id;
-
+import com.soundboard.soundboard.util.SoundCategoryEnum;
 import java.time.Instant;
+import java.util.List;
 
 public record SoundDTO(
-        @Id Long id,
+        Long id,
         String name,
         String description,
+        String ownedBy,
+        SoundCategoryEnum category,
+        List<String> tags,
         Instant createdAt,
-        String storedName,
-        long size
-) {
-}
+        Instant recentUpdate
+) {}
