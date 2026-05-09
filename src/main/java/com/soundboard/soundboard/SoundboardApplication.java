@@ -1,6 +1,5 @@
 package com.soundboard.soundboard;
 
-import com.soundboard.soundboard.util.TestComponent;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -17,8 +16,6 @@ public class SoundboardApplication {
 	public static void main(String[] args) {
 		ApplicationContext context = SpringApplication.run(SoundboardApplication.class, args);
 		
-		TestComponent obj = context.getBean(TestComponent.class);
-		obj.build();
 	}
 
 }
