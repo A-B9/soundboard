@@ -33,7 +33,6 @@
 		<postgres.version>42.7.8</postgres.version>
 		<springboot-validation.version>4.0.1</springboot-validation.version>
 		<jsonwebtoken.version>0.12.6</jsonwebtoken.version>
-		<junit-platform.version>1.11.0</junit-platform.version>
 		<assertj-core.version>3.27.7</assertj-core.version>
 		<hamcrest.version>3.0</hamcrest.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
