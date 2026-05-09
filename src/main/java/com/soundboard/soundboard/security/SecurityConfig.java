@@ -40,7 +40,7 @@ public class SecurityConfig {
   @Autowired
   private JwtFilter jwtFilter;
 
-  @Value("${security.require-https:true}")
+  @Value("${security.require-https:false}") // Need to ensure its TRUE in production, but can be false for local dev/testing
   private boolean requireHttps;
 
   @Value("${app.cors.allowed-origins:http://localhost:3000}")
