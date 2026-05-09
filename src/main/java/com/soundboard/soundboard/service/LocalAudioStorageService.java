@@ -72,6 +72,15 @@ public class LocalAudioStorageService {
     return new UrlResource(filePath.toUri());
   }
   
+  public void deleteAudioFile(String storedPath) throws IOException {
+    Path filePath = rootPath.resolve(storedPath).normalize().toAbsolutePath();
+    Path normalizedRoot = rootPath.normalize().toAbsolutePath();
+    if (!filePath.startsWith(normalizedRoot)) {
+      throw new SecurityException("Access Denied");
+    }
+    Files.deleteIfExists(filePath);
+  }
+
   private String getFileExtension(String fileName) {
     int lastDot = fileName.lastIndexOf(".");
     return lastDot == -1 ? "" : fileName.substring(lastDot + 1);

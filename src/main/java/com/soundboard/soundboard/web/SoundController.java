@@ -1,12 +1,9 @@
 package com.soundboard.soundboard.web;
 
-import com.soundboard.soundboard.annotation.CurrentUser;
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
-import com.soundboard.soundboard.models.SoundEntity;
 import com.soundboard.soundboard.models.responseModels.sound.CreateSoundResponse;
 import com.soundboard.soundboard.models.responseModels.sound.GetSoundResponse;
 import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
-import com.soundboard.soundboard.security.MyUserPrincipal;
 import com.soundboard.soundboard.service.SoundService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,7 +33,6 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@CrossOrigin //CORS
 @RequestMapping("/api/soundboard")
 public class SoundController {
     
@@ -80,23 +75,25 @@ public class SoundController {
     
     @GetMapping("/sounds/{id}")
     public ResponseEntity<GetSoundResponse> getSound(@PathVariable Long id,
-                                                     @CurrentUser(claim = "username") MyUserPrincipal userDetails) {
+                                                     @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(soundService.getById(id, userDetails.getUsername())
                 );
     }
     
     @DeleteMapping("/sounds/{id}")
-    public ResponseEntity<SoundEntity> deleteSound(@PathVariable Long id) {
-        soundService.delete(id);
-        return ResponseEntity.accepted()
-                .body(null);
+    public ResponseEntity<Void> deleteSound(@PathVariable Long id,
+                                            @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+        soundService.delete(id, userDetails.getUsername());
+        return ResponseEntity.accepted().build();
     }
-    
+
     @GetMapping("sounds/search")
-    public ResponseEntity<List<GetSoundResponse>> searchSound(@RequestParam String keyword) {
+    public ResponseEntity<List<GetSoundResponse>> searchSound(
+            @RequestParam @jakarta.validation.constraints.Size(max = 100) String keyword,
+            @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok().body(
-                soundService.searchSound(keyword)
+                soundService.searchSound(keyword, userDetails.getUsername())
         );
     }
     

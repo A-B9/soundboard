@@ -29,7 +29,7 @@ public class MyUserPrincipal implements UserDetails {
     // - when the user is created or updated in the database.
     // you would likely have a field in the database that indicates the user's role or
     // permissions and you would set the authorities based on that field.
-    return Collections.singleton(new SimpleGrantedAuthority("USER"));
+    return Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
   }
   
   @Override
@@ -73,7 +73,6 @@ public class MyUserPrincipal implements UserDetails {
   
   @Override
   public boolean isEnabled() {
-    // assume account is enabled
-    return true;
+    return user.isActive();
   }
 }

@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.service;
 
+import com.soundboard.soundboard.exceptions.SoundNotFoundException;
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
 import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
 import com.soundboard.soundboard.mapper.IMapper;
@@ -54,8 +55,12 @@ public class SoundService {
         }
     }
 
-    public void delete(Long id) {
-        soundRepository.deleteById(id);
+    @Transactional
+    public void delete(Long id, String username) throws IOException {
+        SoundEntity entity = soundRepository.findByIdAndOwnedBy(id, username)
+                .orElseThrow(() -> new SoundNotFoundException(id));
+        storageService.deleteAudioFile(entity.getStoredName());
+        soundRepository.delete(entity);
     }
 
     @Transactional(readOnly = true)
@@ -66,12 +71,13 @@ public class SoundService {
     @Transactional(readOnly = true)
     public GetSoundResponse getById(Long id, String username) {
         return soundRepository.findByIdAndOwnedBy(id, username).map(mapper::toGetResponse)
-                .orElseThrow(() -> new IllegalArgumentException("Sound not found with id: " + id));
+                .orElseThrow(() -> new SoundNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
     public Resource getAudioFile(Long id, String username) throws IOException {
-        SoundEntity entity = soundRepository.findByIdAndOwnedBy(id, username).orElseThrow();
+        SoundEntity entity = soundRepository.findByIdAndOwnedBy(id, username)
+                .orElseThrow(() -> new SoundNotFoundException(id));
         return storageService.getAudioResource(entity.getStoredName());
     }
 
@@ -97,8 +103,8 @@ public class SoundService {
         }
     }
 
-    public List<GetSoundResponse> searchSound(String keyword) {
-        return soundRepository.search(keyword).stream().map(mapper::toGetResponse).toList();
+    public List<GetSoundResponse> searchSound(String keyword, String username) {
+        return soundRepository.searchByOwner(keyword, username).stream().map(mapper::toGetResponse).toList();
     }
 
 }
