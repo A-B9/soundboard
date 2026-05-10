@@ -14,6 +14,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class UserService {
   
@@ -42,6 +44,8 @@ public class UserService {
     }
     Users user = Users.builder()
             .username(request.username())
+            .active(true)
+            .createdAt(Instant.now())
             .build();
     user.setPassword(passwordEncoder.encode(request.password()));
     userRepo.save(user);
