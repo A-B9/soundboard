@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -92,7 +93,7 @@ class TestSoundService {
 
   @Test
   void testDelete_Success() throws IOException {
-    Long soundId = 1L;
+    UUID soundId = UUID.fromString("00000000-0000-0000-0000-000000000001");
     String username = "testUser";
     SoundEntity entity = SoundEntity.builder().storedName("path/to/file.wav").build();
 
@@ -106,7 +107,7 @@ class TestSoundService {
 
   @Test
   void testDelete_NotOwner_throwsSoundNotFoundException() {
-    Long soundId = 1L;
+    UUID soundId = UUID.fromString("00000000-0000-0000-0000-000000000002");
     String username = "otherUser";
 
     when(soundRepository.findByIdAndOwnedBy(soundId, username)).thenReturn(Optional.empty());
@@ -142,7 +143,7 @@ class TestSoundService {
   @Test
   void testGetById_Success() {
     // arrange
-    Long id = 1L;
+    UUID id = UUID.fromString("00000000-0000-0000-0000-000000000003");
     String username = "testUser";
     SoundEntity soundEntity = new SoundEntity();
     GetSoundResponse expected = mock(GetSoundResponse.class);
@@ -172,7 +173,7 @@ class TestSoundService {
   @Test
   void testGetAudioFile_Success() throws IOException {
     // arrange
-    Long id = 1L;
+    UUID id = UUID.fromString("00000000-0000-0000-0000-000000000004");
     String username = "testUser";
     SoundEntity soundEntity = SoundEntity.builder()
             .ownedBy(username)

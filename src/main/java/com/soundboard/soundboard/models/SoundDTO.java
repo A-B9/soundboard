@@ -3,9 +3,10 @@ package com.soundboard.soundboard.models;
 import com.soundboard.soundboard.util.SoundCategoryEnum;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 public record SoundDTO(
-        Long id,
+        UUID id,
         String name,
         String description,
         String ownedBy,

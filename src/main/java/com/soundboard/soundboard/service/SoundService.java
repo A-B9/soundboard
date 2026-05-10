@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class SoundService {
@@ -56,7 +57,7 @@ public class SoundService {
     }
 
     @Transactional
-    public void delete(Long id, String username) throws IOException {
+    public void delete(UUID id, String username) throws IOException {
         SoundEntity entity = soundRepository.findByIdAndOwnedBy(id, username)
                 .orElseThrow(() -> new SoundNotFoundException(id));
         storageService.deleteAudioFile(entity.getStoredName());
@@ -69,13 +70,13 @@ public class SoundService {
     }
 
     @Transactional(readOnly = true)
-    public GetSoundResponse getById(Long id, String username) {
+    public GetSoundResponse getById(UUID id, String username) {
         return soundRepository.findByIdAndOwnedBy(id, username).map(mapper::toGetResponse)
                 .orElseThrow(() -> new SoundNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
-    public Resource getAudioFile(Long id, String username) throws IOException {
+    public Resource getAudioFile(UUID id, String username) throws IOException {
         SoundEntity entity = soundRepository.findByIdAndOwnedBy(id, username)
                 .orElseThrow(() -> new SoundNotFoundException(id));
         return storageService.getAudioResource(entity.getStoredName());

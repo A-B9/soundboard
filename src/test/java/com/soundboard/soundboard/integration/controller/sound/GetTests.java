@@ -95,9 +95,24 @@ public class GetTests extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(seededSound.getId()))
+                .andExpect(jsonPath("$.id").value(seededSound.getId().toString()))
                 .andExpect(jsonPath("$.name").value("Explosion"));
 
         log.info("PASSED - HTTP 200 returned, sound id={} name='Explosion' correctly retrieved", seededSound.getId());
+    }
+
+    @Test
+    void getSound_returns400_whenIdIsNotUuid() throws Exception {
+        log.info("=== TEST: getSound_returns400_whenIdIsNotUuid ===");
+        log.info("Endpoint : GET /api/soundboard/sounds/not-a-uuid");
+        log.info("Auth     : Valid Bearer token for 'testuser'");
+        log.info("Criteria : HTTP 400 Bad Request — GlobalExceptionHandler catches MethodArgumentTypeMismatchException");
+
+        mockMvc.perform(get("/api/soundboard/sounds/not-a-uuid")
+                        .header("Authorization", "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        log.info("PASSED - HTTP 400 returned, malformed UUID path variable correctly rejected");
     }
 }

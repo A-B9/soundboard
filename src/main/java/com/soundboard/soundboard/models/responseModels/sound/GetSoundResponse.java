@@ -3,9 +3,10 @@ package com.soundboard.soundboard.models.responseModels.sound;
 import com.soundboard.soundboard.util.SoundCategoryEnum;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 public record GetSoundResponse(
-        Long id,
+        UUID id,
         String name,
         String description,
         String ownedBy,

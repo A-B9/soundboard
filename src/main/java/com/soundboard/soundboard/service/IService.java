@@ -8,13 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 public interface IService {
-  
+
   public void create(SoundRequestModel soundRequestModel, MultipartFile file) throws IOException;
-  public void delete(Long id);
+  public void delete(UUID id);
   public Page<ResponseBodyModel> getAll(Pageable pageable);
-  public ResponseBodyModel getById(Long id);
-  
+  public ResponseBodyModel getById(UUID id);
+
 }

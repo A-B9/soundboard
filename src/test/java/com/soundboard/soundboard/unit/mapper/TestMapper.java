@@ -14,6 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,14 +43,15 @@ class TestMapper {
                 .size(204800L)
                 .createdAt(now)
                 .build();
-        entity.setId(42L);
+        UUID id1 = UUID.fromString("00000000-0000-0000-0000-000000000042");
+        entity.setId(id1);
         entity.setCategory(SoundCategoryEnum.TAVERN);
         entity.setTags(List.of("ambient", "indoors"));
         entity.setRecentUpdate(recent);
 
         GetSoundResponse response = mapper.toGetResponse(entity);
 
-        assertThat(response.id()).isEqualTo(42L);
+        assertThat(response.id()).isEqualTo(id1);
         assertThat(response.name()).isEqualTo("Tavern Ambience");
         assertThat(response.description()).isEqualTo("Background sounds for a tavern");
         assertThat(response.ownedBy()).isEqualTo("dungeon_master");
@@ -72,12 +74,13 @@ class TestMapper {
                 .size(1024L)
                 .createdAt(now)
                 .build();
-        entity.setId(7L);
+        UUID id2 = UUID.fromString("00000000-0000-0000-0000-000000000007");
+        entity.setId(id2);
         // category, tags, recentUpdate intentionally left null
 
         GetSoundResponse response = mapper.toGetResponse(entity);
 
-        assertThat(response.id()).isEqualTo(7L);
+        assertThat(response.id()).isEqualTo(id2);
         assertThat(response.name()).isEqualTo("Battle Theme");
         assertThat(response.description()).isEqualTo("Epic battle music");
         assertThat(response.ownedBy()).isEqualTo("warrior");
@@ -122,12 +125,13 @@ class TestMapper {
                 .size(99999L)
                 .createdAt(now)
                 .build();
-        entity.setId(3L);
+        UUID id3 = UUID.fromString("00000000-0000-0000-0000-000000000003");
+        entity.setId(id3);
         entity.setCategory(SoundCategoryEnum.CITY);
 
         GetSoundResponse response = mapper.toGetResponse(entity);
 
-        assertThat(response.id()).isEqualTo(3L);
+        assertThat(response.id()).isEqualTo(id3);
         assertThat(response.name()).isEqualTo("City Rain");
         assertThat(response.description()).isEqualTo("Rainy city atmosphere");
         assertThat(response.ownedBy()).isEqualTo("narrator");
@@ -153,14 +157,15 @@ class TestMapper {
                 .size(409600L)
                 .createdAt(now)
                 .build();
-        entity.setId(99L);
+        UUID id4 = UUID.fromString("00000000-0000-0000-0000-000000000099");
+        entity.setId(id4);
         entity.setCategory(SoundCategoryEnum.EPIC);
         entity.setTags(List.of("orchestral", "climax", "finale"));
         entity.setRecentUpdate(recent);
 
         SoundDTO dto = mapper.toSoundDTO(entity);
 
-        assertThat(dto.id()).isEqualTo(99L);
+        assertThat(dto.id()).isEqualTo(id4);
         assertThat(dto.name()).isEqualTo("Epic Finale");
         assertThat(dto.description()).isEqualTo("Climactic orchestral piece");
         assertThat(dto.ownedBy()).isEqualTo("composer");
@@ -183,12 +188,13 @@ class TestMapper {
                 .size(2048L)
                 .createdAt(now)
                 .build();
-        entity.setId(5L);
+        UUID id5 = UUID.fromString("00000000-0000-0000-0000-000000000005");
+        entity.setId(id5);
         // category, tags, recentUpdate intentionally left null
 
         SoundDTO dto = mapper.toSoundDTO(entity);
 
-        assertThat(dto.id()).isEqualTo(5L);
+        assertThat(dto.id()).isEqualTo(id5);
         assertThat(dto.name()).isEqualTo("Travel Music");
         assertThat(dto.description()).isEqualTo("Open road journey tune");
         assertThat(dto.ownedBy()).isEqualTo("traveller");

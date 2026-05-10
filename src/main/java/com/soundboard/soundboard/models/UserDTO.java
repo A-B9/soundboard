@@ -1,9 +1,10 @@
 package com.soundboard.soundboard.models;
 
 import java.time.Instant;
+import java.util.UUID;
 
 public record UserDTO(
-        Long id,
+        UUID id,
         String username,
         String displayName,
         Instant createdAt

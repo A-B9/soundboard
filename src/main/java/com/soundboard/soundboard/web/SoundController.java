@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/soundboard")
@@ -74,7 +75,7 @@ public class SoundController {
     }
     
     @GetMapping("/sounds/{id}")
-    public ResponseEntity<GetSoundResponse> getSound(@PathVariable Long id,
+    public ResponseEntity<GetSoundResponse> getSound(@PathVariable UUID id,
                                                      @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(soundService.getById(id, userDetails.getUsername())
@@ -82,7 +83,7 @@ public class SoundController {
     }
     
     @DeleteMapping("/sounds/{id}")
-    public ResponseEntity<Void> deleteSound(@PathVariable Long id,
+    public ResponseEntity<Void> deleteSound(@PathVariable UUID id,
                                             @AuthenticationPrincipal UserDetails userDetails) throws IOException {
         soundService.delete(id, userDetails.getUsername());
         return ResponseEntity.accepted().build();
@@ -99,7 +100,7 @@ public class SoundController {
     
     @GetMapping("/sounds/{id}/download")
     public ResponseEntity<Resource> getAudioFile(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws IOException {
         try {

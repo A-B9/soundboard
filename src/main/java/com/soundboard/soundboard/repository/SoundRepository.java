@@ -10,9 +10,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface SoundRepository extends JpaRepository<SoundEntity, Long> {
+public interface SoundRepository extends JpaRepository<SoundEntity, UUID> {
 
   @Query("""
     SELECT s
@@ -31,6 +32,6 @@ public interface SoundRepository extends JpaRepository<SoundEntity, Long> {
 
   Page<SoundEntity> findAllByOwnedBy(Pageable pageable, String ownedBy);
 
-  Optional<SoundEntity> findByIdAndOwnedBy(Long id, String ownedBy);
+  Optional<SoundEntity> findByIdAndOwnedBy(UUID id, String ownedBy);
 
 }
