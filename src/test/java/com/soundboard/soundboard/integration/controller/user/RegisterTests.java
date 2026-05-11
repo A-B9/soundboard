@@ -354,4 +354,25 @@ public class RegisterTests extends BaseIntegrationTest {
 
         log.info("PASSED - HTTP 200 returned, $.role field is present and non-null in the registration response");
     }
+
+    @Test
+    void register_seedUserHasRoleUser_byDefault() throws Exception {
+        log.info("=== TEST: register_seedUserHasRoleUser_byDefault ===");
+        log.info("Endpoint : POST /register");
+        log.info("Auth     : None (public endpoint)");
+        log.info("Criteria : Persisted Users entity has role == Role.USER and mustChangePassword == false after registration");
+
+        mockMvc.perform(post("/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"defaultroleuser\",\"password\":\"Str0ng!Pass#2026\"}"))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        Users saved = userRepo.findByUsername("defaultroleuser");
+        assertThat(saved).isNotNull();
+        assertThat(saved.getRole()).isEqualTo(Role.USER);
+        assertThat(saved.isMustChangePassword()).isFalse();
+
+        log.info("PASSED - Persisted user entity has Role.USER and mustChangePassword=false as defaults");
+    }
 }

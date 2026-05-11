@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-public class JwtFilter extends OncePerRequestFilter { // filter executed only once per request.
+public class JwtFilter extends OncePerRequestFilter {
+
+  public static final String MUST_CHANGE_PASSWORD_ATTR = "com.soundboard.security.mustChangePassword";
   
   @Autowired
   JWTService jwtService;
@@ -65,7 +67,7 @@ public class JwtFilter extends OncePerRequestFilter { // filter executed only on
       if (jwtService.validateToken(token, userDetails)) {
         String role = jwtService.extractRole(token);
         List<GrantedAuthority> authorities = (role != null)
-                ? List.of(new SimpleGrantedAuthority(role))
+                ? List.of(new SimpleGrantedAuthority("ROLE_" + stripRolePrefix(role)))
                 : List.copyOf(userDetails.getAuthorities());
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(
@@ -77,9 +79,15 @@ public class JwtFilter extends OncePerRequestFilter { // filter executed only on
                 .buildDetails(request));
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        boolean mustChangePassword = jwtService.extractMustChangePassword(token);
+        request.setAttribute(MUST_CHANGE_PASSWORD_ATTR, mustChangePassword);
       }
     }
     filterChain.doFilter(request, response);
-    
+  }
+
+  private static String stripRolePrefix(String role) {
+    return role.startsWith("ROLE_") ? role.substring(5) : role;
   }
 }

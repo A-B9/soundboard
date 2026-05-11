@@ -40,6 +40,9 @@ public class Users {
   @Builder.Default
   private Role role = Role.USER;
 
+  @Builder.Default
+  private boolean mustChangePassword = false;
+
   public void setPassword(String password) {
     this.password = password;
   }

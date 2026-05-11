@@ -28,8 +28,12 @@ public class UserController {
   }
   
   @PostMapping("/login")
-  public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-    return userService.verify(request);
+  public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    LoginResponse response = userService.verify(request);
+    if  (response.message().contains("Invalid")) {
+      return ResponseEntity.badRequest().body(response);
+    }
+    return ResponseEntity.ok(response);
   }
   
 }

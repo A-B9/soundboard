@@ -3,6 +3,7 @@ package com.soundboard.soundboard.integration.controller.user;
 import com.jayway.jsonpath.JsonPath;
 import com.soundboard.soundboard.integration.BaseIntegrationTest;
 import com.soundboard.soundboard.integration.fixtures.SoundSeeder;
+import com.soundboard.soundboard.security.JWTService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
@@ -33,6 +35,9 @@ public class LoginTests extends BaseIntegrationTest {
 
     @Autowired
     private SoundSeeder seeder;
+
+    @Autowired
+    private JWTService jwtService;
 
     @BeforeAll
     void setUpClass() {
@@ -237,7 +242,7 @@ public class LoginTests extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"WrongPass!2026\"}"))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Invalid username or password"))
                 .andExpect(jsonPath("$.token").value(""));
 
@@ -255,10 +260,78 @@ public class LoginTests extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"ghost\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Invalid username or password"))
                 .andExpect(jsonPath("$.token").value(""));
 
         log.info("PASSED - HTTP 200 returned with vague error, non-existent user handled gracefully");
+    }
+
+    @Test
+    void login_tokenContainsRoleUserClaim_forRegularUser() throws Exception {
+        log.info("=== TEST: login_tokenContainsRoleUserClaim_forRegularUser ===");
+        log.info("Endpoint : POST /login");
+        log.info("Auth     : None (public endpoint)");
+        log.info("Criteria : JWT role claim extracted via JWTService.extractRole equals 'USER' for a regular registered user");
+
+        MvcResult result = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = JsonPath.read(result.getResponse().getContentAsString(), "$.token");
+        String roleClaim = jwtService.extractRole(token);
+
+        assertThat(roleClaim).isEqualTo("USER");
+
+        log.info("PASSED - JWT role claim is 'USER' for a regular user login");
+    }
+
+    @Test
+    void login_tokenContainsMustChangePasswordFalse_byDefault() throws Exception {
+        log.info("=== TEST: login_tokenContainsMustChangePasswordFalse_byDefault ===");
+        log.info("Endpoint : POST /login");
+        log.info("Auth     : None (public endpoint)");
+        log.info("Criteria : JWT mustChangePassword claim extracted via JWTService.extractMustChangePassword is false by default");
+
+        MvcResult result = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = JsonPath.read(result.getResponse().getContentAsString(), "$.token");
+        boolean mustChangePassword = jwtService.extractMustChangePassword(token);
+
+        assertThat(mustChangePassword).isFalse();
+
+        log.info("PASSED - JWT mustChangePassword claim is false for a newly registered user");
+    }
+
+    @Test
+    void login_tokenGrantsAccessToProtectedEndpoint_withRoleUserAuthority() throws Exception {
+        log.info("=== TEST: login_tokenGrantsAccessToProtectedEndpoint_withRoleUserAuthority ===");
+        log.info("Endpoint : POST /login -> GET /api/soundboard/sounds");
+        log.info("Auth     : Token extracted from login, carrying ROLE_USER authority derived from role claim");
+        log.info("Criteria : GET /api/soundboard/sounds returns HTTP 200, confirming ROLE_USER grants access");
+
+        MvcResult result = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = JsonPath.read(result.getResponse().getContentAsString(), "$.token");
+
+        mockMvc.perform(get("/api/soundboard/sounds")
+                        .header("Authorization", "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        log.info("PASSED - ROLE_USER authority derived from JWT role claim grants access to protected endpoint");
     }
 }

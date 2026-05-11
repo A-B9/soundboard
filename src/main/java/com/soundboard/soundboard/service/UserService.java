@@ -8,6 +8,7 @@ import com.soundboard.soundboard.models.responseModels.user.LoginResponse;
 import com.soundboard.soundboard.models.responseModels.user.RegisterResponse;
 import com.soundboard.soundboard.repository.MyUserRepo;
 import com.soundboard.soundboard.security.JWTService;
+import com.soundboard.soundboard.security.MyUserPrincipal;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -64,9 +65,16 @@ public class UserService {
                       new UsernamePasswordAuthenticationToken(request.username(), request.password())
               );
       if (authentication.isAuthenticated()) {
+        if (!(authentication.getPrincipal() instanceof MyUserPrincipal principal)) {
+          return LoginResponse.builder()
+                  .username(request.username())
+                  .token("")
+                  .message("Invalid username or password")
+                  .build();
+        }
         return LoginResponse.builder()
                 .username(request.username())
-                .token(jwtService.generateToken(request.username()))
+                .token(jwtService.generateToken(request.username(), principal.getRole(), principal.isMustChangePassword()))
                 .message("User authenticated successfully")
                 .build();
       }

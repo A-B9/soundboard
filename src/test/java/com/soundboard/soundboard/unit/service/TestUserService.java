@@ -8,6 +8,7 @@ import com.soundboard.soundboard.models.responseModels.user.LoginResponse;
 import com.soundboard.soundboard.models.responseModels.user.RegisterResponse;
 import com.soundboard.soundboard.repository.MyUserRepo;
 import com.soundboard.soundboard.security.JWTService;
+import com.soundboard.soundboard.security.MyUserPrincipal;
 import com.soundboard.soundboard.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import static com.soundboard.soundboard.util.Constants.BCRYPT_STRENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,14 +68,21 @@ public class TestUserService {
   }
   
   @Test
-  void testVerfiy_Success() {
+  void testVerify_Success() {
     LoginRequest request = new LoginRequest("TestUser", "password");
+
+    Users user = Users.builder()
+            .username("TestUser")
+            .active(true)
+            .build();
+    MyUserPrincipal principal = new MyUserPrincipal(user);
 
     Authentication authentication = mock(Authentication.class);
     when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
             .thenReturn(authentication);
     when(authentication.isAuthenticated()).thenReturn(true);
-    when(jwtService.generateToken("TestUser")).thenReturn("mockedToken");
+    when(authentication.getPrincipal()).thenReturn(principal);
+    when(jwtService.generateToken(anyString(), any(Role.class), anyBoolean())).thenReturn("mockedToken");
 
     LoginResponse expected = LoginResponse.builder()
             .username("TestUser")

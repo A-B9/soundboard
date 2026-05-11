@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.security;
 
+import com.soundboard.soundboard.models.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 public class JWTService {
 
   private static final String ROLE_CLAIM = "role";
+  private static final String MUST_CHANGE_PASSWORD_CLAIM = "mustChangePassword";
   private static final String ISSUER = "soundboard";
   private static final String DEV_SECRET = "c2VjcmV0LWtleS1mb3ItZGV2LW9ubHktZG8tbm90LXVzZS1pbi1wcm9kdWN0aW9u";
 
@@ -39,10 +41,11 @@ public class JWTService {
     }
   }
 
-  public String generateToken(String username) {
+  public String generateToken(String username, Role role, boolean mustChangePassword) {
     return Jwts.builder()
             .claims()
-              .add(ROLE_CLAIM, "ROLE_USER")
+              .add(ROLE_CLAIM, role.name())
+              .add(MUST_CHANGE_PASSWORD_CLAIM, mustChangePassword)
               .subject(username)
               .issuer(ISSUER)
               .issuedAt(new Date(System.currentTimeMillis()))
@@ -63,6 +66,13 @@ public class JWTService {
 
   public String extractRole(String token) {
     return extractClaim(token, claims -> claims.get(ROLE_CLAIM, String.class));
+  }
+
+  public boolean extractMustChangePassword(String token) {
+    // false is the safe default: tokens issued before this claim existed continue to work normally.
+    // Absence of claim means the user is not flagged for forced rotation.
+    Boolean value = extractClaim(token, claims -> claims.get(MUST_CHANGE_PASSWORD_CLAIM, Boolean.class));
+    return value != null && value;
   }
 
   private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
