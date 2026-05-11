@@ -1,6 +1,9 @@
 package com.soundboard.soundboard.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,6 +34,11 @@ public class Users {
   private boolean active = true;
 
   private String displayName;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, columnDefinition = "varchar(20) default 'USER'")
+  @Builder.Default
+  private Role role = Role.USER;
 
   public void setPassword(String password) {
     this.password = password;

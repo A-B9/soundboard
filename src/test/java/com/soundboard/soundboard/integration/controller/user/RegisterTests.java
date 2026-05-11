@@ -2,6 +2,7 @@ package com.soundboard.soundboard.integration.controller.user;
 
 import com.soundboard.soundboard.integration.BaseIntegrationTest;
 import com.soundboard.soundboard.integration.fixtures.SoundSeeder;
+import com.soundboard.soundboard.models.Role;
 import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.repository.MyUserRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -297,5 +298,60 @@ public class RegisterTests extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("User registered successfully"));
 
         log.info("PASSED - HTTP 200 returned, /register is accessible without an Authorization header");
+    }
+
+    @Test
+    void register_responseContainsRoleUser_onSuccess() throws Exception {
+        log.info("=== TEST: register_responseContainsRoleUser_onSuccess ===");
+        log.info("Endpoint : POST /register");
+        log.info("Auth     : None (public endpoint)");
+        log.info("Criteria : HTTP 200, $.role = 'USER' in response body");
+
+        mockMvc.perform(post("/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"rolecheck1\",\"password\":\"Str0ng!Pass#2026\"}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("USER"));
+
+        log.info("PASSED - HTTP 200 returned, $.role is 'USER' in the registration response");
+    }
+
+    @Test
+    void register_persistsDefaultRole_asUser() throws Exception {
+        log.info("=== TEST: register_persistsDefaultRole_asUser ===");
+        log.info("Endpoint : POST /register");
+        log.info("Auth     : None (public endpoint)");
+        log.info("Criteria : HTTP 200, persisted Users entity has role == Role.USER");
+
+        mockMvc.perform(post("/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"rolecheck2\",\"password\":\"Str0ng!Pass#2026\"}"))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        Users saved = userRepo.findByUsername("rolecheck2");
+        assertThat(saved).isNotNull();
+        assertThat(saved.getRole()).isEqualTo(Role.USER);
+
+        log.info("PASSED - Persisted user entity has Role.USER as the default role");
+    }
+
+    @Test
+    void register_roleIsUser_notNullInResponse() throws Exception {
+        log.info("=== TEST: register_roleIsUser_notNullInResponse ===");
+        log.info("Endpoint : POST /register");
+        log.info("Auth     : None (public endpoint)");
+        log.info("Criteria : HTTP 200, $.role is present and not null in response body");
+
+        mockMvc.perform(post("/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"rolecheck3\",\"password\":\"Str0ng!Pass#2026\"}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").exists())
+                .andExpect(jsonPath("$.role").isNotEmpty());
+
+        log.info("PASSED - HTTP 200 returned, $.role field is present and non-null in the registration response");
     }
 }

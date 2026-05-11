@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.service;
 
+import com.soundboard.soundboard.models.Role;
 import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.models.requestModels.LoginRequest;
 import com.soundboard.soundboard.models.requestModels.RegisterRequest;
@@ -52,6 +53,7 @@ public class UserService {
     return RegisterResponse.builder()
             .username(request.username())
             .message("User registered successfully")
+            .role(Role.USER)
             .build();
   }
   

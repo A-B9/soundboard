@@ -1,5 +1,7 @@
 package com.soundboard.soundboard.unit.service;
 
+import com.soundboard.soundboard.models.Role;
+import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.models.requestModels.LoginRequest;
 import com.soundboard.soundboard.models.requestModels.RegisterRequest;
 import com.soundboard.soundboard.models.responseModels.user.LoginResponse;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static com.soundboard.soundboard.util.Constants.BCRYPT_STRENGTH;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -105,5 +108,26 @@ public class TestUserService {
     assert actual.token().equals(expected.token());
     assert actual.message().equals(expected.message());
   }
-  
+
+  @Test
+  void usersNoArgConstructor_defaultRole_isUser() {
+    assertThat(new Users().getRole()).isEqualTo(Role.USER);
+  }
+
+  @Test
+  void testRegisterUser_roleIsAlwaysUser() {
+    // registerUser must hard-code Role.USER in its response, regardless of what
+    // the incoming RegisterRequest contains.  userRepo.save() is not stubbed here;
+    // Mockito returns null by default for un-stubbed calls, which is acceptable
+    // because the test only inspects the returned RegisterResponse, not the saved entity.
+    RegisterRequest request = new RegisterRequest("NewUser", "StrongP@ssword123");
+
+    RegisterResponse actual = userService.registerUser(request);
+
+    assertThat(actual).isNotNull();
+    assertThat(actual.role()).isEqualTo(Role.USER);
+    assertThat(actual.username()).isEqualTo("NewUser");
+    assertThat(actual.message()).isEqualTo("User registered successfully");
+  }
+
 }

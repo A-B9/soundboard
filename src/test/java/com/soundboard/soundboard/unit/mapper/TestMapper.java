@@ -2,8 +2,11 @@ package com.soundboard.soundboard.unit.mapper;
 
 import com.soundboard.soundboard.mapper.IMapper;
 import com.soundboard.soundboard.mapper.IMapperImpl;
+import com.soundboard.soundboard.models.Role;
 import com.soundboard.soundboard.models.SoundDTO;
 import com.soundboard.soundboard.models.SoundEntity;
+import com.soundboard.soundboard.models.UserDTO;
+import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.models.responseModels.sound.GetSoundResponse;
 import com.soundboard.soundboard.util.SoundCategoryEnum;
 import org.junit.jupiter.api.Test;
@@ -219,5 +222,45 @@ class TestMapper {
         SoundDTO dto = mapper.toSoundDTO(entity);
 
         assertThat(dto.ownedBy()).isEqualTo("specific_owner_value");
+    }
+
+    // -----------------------------------------------------------------------
+    // toUserDTO(Users user)
+    // -----------------------------------------------------------------------
+
+    @Test
+    void toUserDTO_mapsRoleField() {
+        // An explicitly set ADMIN role must survive the mapping unchanged.
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000011");
+        Users user = Users.builder()
+                .id(userId)
+                .username("admin_user")
+                .displayName("Admin")
+                .createdAt(Instant.parse("2025-01-01T00:00:00Z"))
+                .role(Role.ADMIN)
+                .build();
+
+        UserDTO dto = mapper.toUserDTO(user);
+
+        assertThat(dto.role()).isEqualTo(Role.ADMIN);
+        assertThat(dto.username()).isEqualTo("admin_user");
+        assertThat(dto.displayName()).isEqualTo("Admin");
+        assertThat(dto.id()).isEqualTo(userId);
+    }
+
+    @Test
+    void toUserDTO_defaultRole_isUser() {
+        // When no role is passed to the builder the @Builder.Default kicks in and
+        // produces Role.USER — the mapper must carry that value through to the DTO.
+        Users user = Users.builder()
+                .username("regular_user")
+                .displayName("Regular")
+                .createdAt(Instant.parse("2025-03-15T12:00:00Z"))
+                .build();
+
+        UserDTO dto = mapper.toUserDTO(user);
+
+        assertThat(dto.role()).isEqualTo(Role.USER);
+        assertThat(dto.username()).isEqualTo("regular_user");
     }
 }
