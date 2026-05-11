@@ -60,6 +60,28 @@ public class SoundSeeder {
         return soundRepository.save(sound);
     }
 
+    public Users seedAdmin(String username) {
+        Users user = Users.builder()
+                .username(username)
+                .password(passwordEncoder.encode("test-password"))
+                .createdAt(Instant.now())
+                .active(true)
+                .role(com.soundboard.soundboard.models.Role.ADMIN)
+                .build();
+        return userRepo.save(user);
+    }
+
+    public Users seedSuperAdmin(String username) {
+        Users user = Users.builder()
+                .username(username)
+                .password(passwordEncoder.encode("test-password"))
+                .createdAt(Instant.now())
+                .active(true)
+                .role(com.soundboard.soundboard.models.Role.SUPER_ADMIN)
+                .build();
+        return userRepo.save(user);
+    }
+
     public void clearAll() {
         soundRepository.deleteAll();
         userRepo.deleteAll();

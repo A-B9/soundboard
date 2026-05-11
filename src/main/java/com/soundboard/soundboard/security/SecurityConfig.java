@@ -12,6 +12,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
@@ -32,6 +33,7 @@ import static com.soundboard.soundboard.util.Constants.BCRYPT_STRENGTH;
 
 @Configuration
 @EnableWebSecurity // don't use default flow - use this flow
+@EnableMethodSecurity
 public class SecurityConfig {
 
   @Autowired
@@ -54,6 +56,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                     request -> request
                             .requestMatchers("/register", "/login").permitAll()
+                            .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                             .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
