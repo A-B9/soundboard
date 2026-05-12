@@ -23,34 +23,21 @@ class TestAdminProperties {
     @Autowired
     AdminProperties adminProperties;
 
-    /**
-     * Under the "test" profile, application-test.properties sets
-     * app.admin.force-password-change=true.  The Spring binding infrastructure
-     * must honour that value and inject it into the record component.
-     */
     @Test
     void forcePasswordChange_isTrue_underTestProfile() {
         assertThat(adminProperties.forcePasswordChange()).isTrue();
     }
 
-    /**
-     * Canonical all-args constructor: calling new AdminProperties(false) directly
-     * (no Spring context) must return a record whose accessor returns false.
-     */
     @Test
-    void adminProperties_canBeInstantiatedWithFalse() {
+    void adminProperties_canonicalConstructor_acceptsFalse() {
         AdminProperties props = new AdminProperties(false);
 
         assertThat(props.forcePasswordChange()).isFalse();
     }
 
-    /**
-     * Compact no-arg constructor delegates to this(true) — fail-closed default.
-     * Insecure behaviour (false) must be explicitly opted into via properties.
-     */
     @Test
-    void adminProperties_defaultConstructor_returnsTrue() {
-        AdminProperties props = new AdminProperties();
+    void adminProperties_canonicalConstructor_acceptsTrue() {
+        AdminProperties props = new AdminProperties(true);
 
         assertThat(props.forcePasswordChange()).isTrue();
     }

@@ -1,13 +1,9 @@
 package com.soundboard.soundboard.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties(prefix = "app.admin")
-@Component
-public record AdminProperties(boolean forcePasswordChange) {
-    // Defaults to true (fail-closed): insecure behaviour must be explicitly opted into per profile.
-    public AdminProperties() {
-        this(true);
-    }
+// Fail-closed: forcePasswordChange defaults to true so insecure behaviour must be explicitly opted into per profile.
+public record AdminProperties(@DefaultValue("true") boolean forcePasswordChange) {
 }

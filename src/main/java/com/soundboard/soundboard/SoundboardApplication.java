@@ -2,6 +2,7 @@ package com.soundboard.soundboard;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 /// @ComponentScan tells Spring to look for other components, configurations, and services in the com/soundboard/soundboard package, allowing it to find the controllers
 @SpringBootApplication
 @EnableJpaRepositories("com.soundboard.soundboard.repository")
+@ConfigurationPropertiesScan("com.soundboard.soundboard")
 public class SoundboardApplication {
 
 	public static void main(String[] args) {
