@@ -18,4 +18,6 @@ public interface MyUserRepo extends JpaRepository<Users, UUID> {
   List<Users> findAllByRole(Role role);
 
   boolean existsByRole(Role role);
+
+  long countByRole(Role role);
 }

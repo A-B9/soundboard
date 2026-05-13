@@ -8,5 +8,6 @@ public record UserDTO(
         String username,
         String displayName,
         Instant createdAt,
-        Role role
+        Role role,
+        boolean active
 ) {}

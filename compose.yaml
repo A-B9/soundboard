@@ -29,6 +29,8 @@ services:
       SPRING_DATASOURCE_USERNAME: soundboard_user
       SPRING_DATASOURCE_PASSWORD: pass #${DB_PASSWORD} # pulled from a .env file
       APP_SOUNDS_DIRECTORY: ./sounds
+      APP_BOOTSTRAP_USERNAME: ${APP_BOOTSTRAP_USERNAME}
+      APP_BOOTSTRAP_PASSWORD: ${APP_BOOTSTRAP_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
