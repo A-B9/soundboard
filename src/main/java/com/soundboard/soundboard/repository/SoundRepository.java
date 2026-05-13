@@ -32,6 +32,8 @@ public interface SoundRepository extends JpaRepository<SoundEntity, UUID> {
 
   Page<SoundEntity> findAllByOwnedBy(Pageable pageable, String ownedBy);
 
+  List<SoundEntity> findAllByOwnedBy(String ownedBy);
+
   Optional<SoundEntity> findByIdAndOwnedBy(UUID id, String ownedBy);
 
 }

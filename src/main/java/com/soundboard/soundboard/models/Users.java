@@ -46,4 +46,12 @@ public class Users {
   public void setPassword(String password) {
     this.password = password;
   }
+
+  public void setActive(boolean active) {
+    this.active = active;
+  }
+
+  public void setMustChangePassword(boolean mustChangePassword) {
+    this.mustChangePassword = mustChangePassword;
+  }
 }

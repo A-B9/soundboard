@@ -36,11 +36,11 @@ public class AdminSecurityTests extends BaseIntegrationTest {
     @Test
     void adminEndpoint_returns401_whenNoToken() throws Exception {
         log.info("=== TEST: adminEndpoint_returns401_whenNoToken ===");
-        log.info("Endpoint : GET /api/admin/users");
+        log.info("Endpoint : GET /api/soundboard/admin/users");
         log.info("Auth     : No Authorization header");
         log.info("Criteria : HTTP 401 — JwtFilter finds no token, denies request before reaching security role check");
 
-        mockMvc.perform(get("/api/admin/users"))
+        mockMvc.perform(get("/api/soundboard/admin/users"))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
 
@@ -50,11 +50,11 @@ public class AdminSecurityTests extends BaseIntegrationTest {
     @Test
     void adminEndpoint_returns401_whenMalformedToken() throws Exception {
         log.info("=== TEST: adminEndpoint_returns401_whenMalformedToken ===");
-        log.info("Endpoint : GET /api/admin/users");
+        log.info("Endpoint : GET /api/soundboard/admin/users");
         log.info("Auth     : Authorization: Bearer invalid-token");
         log.info("Criteria : HTTP 401 — JwtFilter catches JwtException, proceeds without authentication context");
 
-        mockMvc.perform(get("/api/admin/users")
+        mockMvc.perform(get("/api/soundboard/admin/users")
                         .header("Authorization", "Bearer invalid-token"))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
@@ -65,14 +65,14 @@ public class AdminSecurityTests extends BaseIntegrationTest {
     @Test
     void adminEndpoint_returns403_whenUserRole() throws Exception {
         log.info("=== TEST: adminEndpoint_returns403_whenUserRole ===");
-        log.info("Endpoint : GET /api/admin/users");
+        log.info("Endpoint : GET /api/soundboard/admin/users");
         log.info("Auth     : Valid Bearer token for USER role");
         log.info("Criteria : HTTP 403 — authenticated but insufficient role, denied by SecurityConfig");
 
         seeder.seedUser("regular-user");
         String token = jwtHelper.generateTokenForUser("regular-user", Role.USER);
 
-        mockMvc.perform(get("/api/admin/users")
+        mockMvc.perform(get("/api/soundboard/admin/users")
                         .header("Authorization", "Bearer " + token))
                 .andDo(print())
                 .andExpect(status().isForbidden());
@@ -81,39 +81,39 @@ public class AdminSecurityTests extends BaseIntegrationTest {
     }
 
     @Test
-    void adminEndpoint_returns404_whenAdminRole() throws Exception {
-        log.info("=== TEST: adminEndpoint_returns404_whenAdminRole ===");
-        log.info("Endpoint : GET /api/admin/users");
+    void adminEndpoint_returns200_whenAdminRole() throws Exception {
+        log.info("=== TEST: adminEndpoint_returns200_whenAdminRole ===");
+        log.info("Endpoint : GET /api/soundboard/admin/users");
         log.info("Auth     : Valid Bearer token for ADMIN role");
-        log.info("Criteria : HTTP 404 — passes security gating, no handler mapped yet in Phase 3");
+        log.info("Criteria : HTTP 200 — ADMIN role passes security and reaches the handler");
 
         seeder.seedAdmin("admin-user");
         String token = jwtHelper.generateTokenForUser("admin-user", Role.ADMIN);
 
-        mockMvc.perform(get("/api/admin/users")
+        mockMvc.perform(get("/api/soundboard/admin/users")
                         .header("Authorization", "Bearer " + token))
                 .andDo(print())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
 
-        log.info("PASSED - HTTP 404 returned, ADMIN role passed security and reached unhandled route");
+        log.info("PASSED - HTTP 200 returned, ADMIN role reached /api/soundboard/admin/users handler");
     }
 
     @Test
-    void adminEndpoint_returns404_whenSuperAdminRole() throws Exception {
-        log.info("=== TEST: adminEndpoint_returns404_whenSuperAdminRole ===");
-        log.info("Endpoint : GET /api/admin/users");
+    void adminEndpoint_returns200_whenSuperAdminRole() throws Exception {
+        log.info("=== TEST: adminEndpoint_returns200_whenSuperAdminRole ===");
+        log.info("Endpoint : GET /api/soundboard/admin/users");
         log.info("Auth     : Valid Bearer token for SUPER_ADMIN role");
-        log.info("Criteria : HTTP 404 — passes security gating, no handler mapped yet in Phase 3");
+        log.info("Criteria : HTTP 200 — SUPER_ADMIN role passes security and reaches the handler");
 
         seeder.seedSuperAdmin("superadmin-user");
         String token = jwtHelper.generateTokenForUser("superadmin-user", Role.SUPER_ADMIN);
 
-        mockMvc.perform(get("/api/admin/users")
+        mockMvc.perform(get("/api/soundboard/admin/users")
                         .header("Authorization", "Bearer " + token))
                 .andDo(print())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
 
-        log.info("PASSED - HTTP 404 returned, SUPER_ADMIN role passed security and reached unhandled route");
+        log.info("PASSED - HTTP 200 returned, SUPER_ADMIN role reached /api/soundboard/admin/users handler");
     }
 
     @Test
