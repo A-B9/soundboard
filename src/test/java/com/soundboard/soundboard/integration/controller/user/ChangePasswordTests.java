@@ -1,4 +1,4 @@
-package com.soundboard.soundboard.integration.controller.me;
+package com.soundboard.soundboard.integration.controller.user;
 
 import com.soundboard.soundboard.TestJwtHelper;
 import com.soundboard.soundboard.integration.BaseIntegrationTest;

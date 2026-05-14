@@ -1,6 +1,8 @@
 package com.soundboard.soundboard.security;
 
 import com.soundboard.soundboard.security.filter.JwtFilter;
+import com.soundboard.soundboard.security.filter.LoginRateLimitFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +44,9 @@ public class SecurityConfig {
   @Autowired
   private JwtFilter jwtFilter;
 
+  @Autowired
+  private LoginRateLimitFilter loginRateLimitFilter;
+
   @Value("${security.require-https:false}") // Need to ensure its TRUE in production, but can be false for local dev/testing
   private boolean requireHttps;
 
@@ -72,6 +77,7 @@ public class SecurityConfig {
                     .referrerPolicy(r -> r.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(loginRateLimitFilter, LogoutFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .passwordManagement((passwordManager) -> passwordManager.changePasswordPage("/change-password"))
             .logout((logout) ->
