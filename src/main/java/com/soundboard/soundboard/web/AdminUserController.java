@@ -2,6 +2,7 @@ package com.soundboard.soundboard.web;
 
 import com.soundboard.soundboard.models.UserDTO;
 import com.soundboard.soundboard.models.requestModels.CreateAdminUserRequest;
+import com.soundboard.soundboard.models.requestModels.PatchUserRequest;
 import com.soundboard.soundboard.security.MyUserPrincipal;
 import com.soundboard.soundboard.service.AdminUserService;
 import jakarta.validation.Valid;
@@ -56,6 +57,17 @@ public class AdminUserController {
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody CreateAdminUserRequest request,
                                               @AuthenticationPrincipal MyUserPrincipal caller) {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminUserService.createUser(request, caller));
+    }
+    
+    @PatchMapping("/{id}/password-reset")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserDTO> updateUser(@PathVariable UUID id,
+                                              @Valid @RequestBody PatchUserRequest request,
+                                              @AuthenticationPrincipal MyUserPrincipal caller) {
+        
+        return ResponseEntity.ok().body(
+                adminUserService.patchUser(id,  request, caller)
+        );
     }
 
     @DeleteMapping("/{id}/hard-delete")

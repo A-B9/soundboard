@@ -55,8 +55,9 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(
                     request -> request
-                            .requestMatchers("/register", "/login").permitAll()
-                            .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                            .requestMatchers("/api/soundboard/user/register", "/api/soundboard/user/login").permitAll()
+                            .requestMatchers("/api/soundboard/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                            .requestMatchers("/api/soundboard/user/password-reset").authenticated()
                             .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

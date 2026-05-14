@@ -56,11 +56,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_returns200_whenValidCredentials() throws Exception {
         log.info("=== TEST: login_returns200_whenValidCredentials ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, username='loginuser', message='User authenticated successfully', token non-empty");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -75,11 +75,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_tokenIsValidJwtStructure_whenValidCredentials() throws Exception {
         log.info("=== TEST: login_tokenIsValidJwtStructure_whenValidCredentials ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, $.token matches three-part Base64url JWT structure");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -92,11 +92,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_tokenAuthenticatesProtectedEndpoint_whenValidCredentials() throws Exception {
         log.info("=== TEST: login_tokenAuthenticatesProtectedEndpoint_whenValidCredentials ===");
-        log.info("Endpoint : POST /login -> GET /api/soundboard/sounds");
+        log.info("Endpoint : POST /api/soundboard/user/login -> GET /api/soundboard/sounds");
         log.info("Auth     : Token extracted from login response, used on protected endpoint");
-        log.info("Criteria : POST /login returns 200 with token; GET /api/soundboard/sounds returns 200 with that token");
+        log.info("Criteria : POST /api/soundboard/user/login returns 200 with token; GET /api/soundboard/sounds returns 200 with that token");
 
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -110,17 +110,17 @@ public class LoginTests extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        log.info("PASSED - Token from /login successfully authenticates GET /api/soundboard/sounds");
+        log.info("PASSED - Token from /api/soundboard/user/login successfully authenticates GET /api/soundboard/sounds");
     }
 
     @Test
     void login_returns400_whenUsernameMissing() throws Exception {
         log.info("=== TEST: login_returns400_whenUsernameMissing ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.username = 'Username is required'");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -133,11 +133,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_returns400_whenUsernameBlank() throws Exception {
         log.info("=== TEST: login_returns400_whenUsernameBlank ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.username = 'Username is required'");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -150,11 +150,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_returns400_whenPasswordMissing() throws Exception {
         log.info("=== TEST: login_returns400_whenPasswordMissing ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.password = 'Password is required'");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\"}"))
                 .andDo(print())
@@ -167,11 +167,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_returns400_whenPasswordBlank() throws Exception {
         log.info("=== TEST: login_returns400_whenPasswordBlank ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.password = 'Password is required'");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"\"}"))
                 .andDo(print())
@@ -184,11 +184,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_returns400_whenBothFieldsBlank() throws Exception {
         log.info("=== TEST: login_returns400_whenBothFieldsBlank ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400 — both username and password blank");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"\",\"password\":\"\"}"))
                 .andDo(print())
@@ -200,11 +200,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_returns400_whenMalformedJson() throws Exception {
         log.info("=== TEST: login_returns400_whenMalformedJson ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $['Field causing the issue'] exists");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ broken"))
                 .andDo(print())
@@ -217,28 +217,28 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_isPublicEndpoint_noAuthRequired() throws Exception {
         log.info("=== TEST: login_isPublicEndpoint_noAuthRequired ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : No Authorization header");
         log.info("Criteria : HTTP 200 — endpoint is public, token is non-empty");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", not(emptyString())));
 
-        log.info("PASSED - HTTP 200 returned, /login is accessible without an Authorization header");
+        log.info("PASSED - HTTP 200 returned, /api/soundboard/user/login is accessible without an Authorization header");
     }
 
     @Test
     void login_returns200_whenInvalidPassword() throws Exception {
         log.info("=== TEST: login_returns200_whenInvalidPassword ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, message='Invalid username or password', token='' (vague response for bad credentials)");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"WrongPass!2026\"}"))
                 .andDo(print())
@@ -252,11 +252,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_returns200_whenUserDoesNotExist() throws Exception {
         log.info("=== TEST: login_returns200_whenUserDoesNotExist ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, message='Invalid username or password', token='' (vague response for unknown user)");
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"ghost\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -270,11 +270,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_tokenContainsRoleUserClaim_forRegularUser() throws Exception {
         log.info("=== TEST: login_tokenContainsRoleUserClaim_forRegularUser ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : JWT role claim extracted via JWTService.extractRole equals 'USER' for a regular registered user");
 
-        MvcResult result = mockMvc.perform(post("/login")
+        MvcResult result = mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -292,11 +292,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_tokenContainsMustChangePasswordFalse_byDefault() throws Exception {
         log.info("=== TEST: login_tokenContainsMustChangePasswordFalse_byDefault ===");
-        log.info("Endpoint : POST /login");
+        log.info("Endpoint : POST /api/soundboard/user/login");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : JWT mustChangePassword claim extracted via JWTService.extractMustChangePassword is false by default");
 
-        MvcResult result = mockMvc.perform(post("/login")
+        MvcResult result = mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -314,11 +314,11 @@ public class LoginTests extends BaseIntegrationTest {
     @Test
     void login_tokenGrantsAccessToProtectedEndpoint_withRoleUserAuthority() throws Exception {
         log.info("=== TEST: login_tokenGrantsAccessToProtectedEndpoint_withRoleUserAuthority ===");
-        log.info("Endpoint : POST /login -> GET /api/soundboard/sounds");
+        log.info("Endpoint : POST /api/soundboard/user/login -> GET /api/soundboard/sounds");
         log.info("Auth     : Token extracted from login, carrying ROLE_USER authority derived from role claim");
         log.info("Criteria : GET /api/soundboard/sounds returns HTTP 200, confirming ROLE_USER grants access");
 
-        MvcResult result = mockMvc.perform(post("/login")
+        MvcResult result = mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"loginuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())

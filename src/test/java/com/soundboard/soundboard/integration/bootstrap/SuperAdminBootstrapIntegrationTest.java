@@ -59,7 +59,7 @@ class SuperAdminBootstrapIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void bootstrappedSuperAdmin_canAuthenticateViaLogin() throws Exception {
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/soundboard/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"username":"bootstrap-superadmin","password":"BootstrapPass123!"}

@@ -7,6 +7,7 @@ import com.soundboard.soundboard.models.SoundEntity;
 import com.soundboard.soundboard.models.UserDTO;
 import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.models.requestModels.CreateAdminUserRequest;
+import com.soundboard.soundboard.models.requestModels.PatchUserRequest;
 import com.soundboard.soundboard.repository.MyUserRepo;
 import com.soundboard.soundboard.repository.SoundRepository;
 import com.soundboard.soundboard.security.MyUserPrincipal;
@@ -79,6 +80,24 @@ public class AdminUserService {
         userRepo.save(target);
         log.warn("AUDIT: {} '{}' toggled active={} on user '{}'",
                 caller.getRole(), caller.getUsername(), target.isActive(), target.getUsername());
+        return mapper.toUserDTO(target);
+    }
+    
+    @Transactional
+    public UserDTO patchUser(UUID id, PatchUserRequest request, MyUserPrincipal caller) {
+        Users target = findOrThrow(id);
+        requireNotSelf(caller, target, "patch");
+        checkIfAbleToPatch(caller, target);
+        requireScopeAccess(caller, target);
+        
+        if (target.isMustChangePassword() == request.mustChangePassword()) {
+            return mapper.toUserDTO(target);
+        }
+        
+        target.setMustChangePassword(request.mustChangePassword());
+        userRepo.save(target);
+        log.warn("AUDIT: {} '{}' set mustChangePassword={} on user '{}'",
+                caller.getRole(), caller.getUsername(), request.mustChangePassword(), target.getUsername());
         return mapper.toUserDTO(target);
     }
 
@@ -157,6 +176,13 @@ public class AdminUserService {
         if (caller.getUsername().equals(target.getUsername())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cannot " + action + " your own account");
+        }
+    }
+    
+    private void checkIfAbleToPatch(MyUserPrincipal caller, Users target) {
+        if (caller.getRole()  != Role.SUPER_ADMIN && target.getRole() != Role.USER) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Only SUPER_ADMIN may patch ADMIN accounts");
         }
     }
 }

@@ -41,11 +41,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns200_whenValidRequest() throws Exception {
         log.info("=== TEST: register_returns200_whenValidRequest ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, username='newuser', message='User registered successfully'");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"newuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -59,11 +59,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_persistsBcryptHash_whenValidRequest() throws Exception {
         log.info("=== TEST: register_persistsBcryptHash_whenValidRequest ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, persisted password is BCrypt hash (starts with $2a$ or $2b$), not plain text");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"bcryptcheck\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -80,13 +80,13 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenUsernameAlreadyExists() throws Exception {
         log.info("=== TEST: register_returns400_whenUsernameAlreadyExists ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, username='existinguser', message='Username already exists'");
 
         seeder.seedUser("existinguser");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"existinguser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -100,11 +100,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenUsernameBlank() throws Exception {
         log.info("=== TEST: register_returns400_whenUsernameBlank ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.username validation message = 'Username is required'");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -117,11 +117,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenUsernameMissing() throws Exception {
         log.info("=== TEST: register_returns400_whenUsernameMissing ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.username validation message = 'Username is required'");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -134,11 +134,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenUsernameWhitespaceOnly() throws Exception {
         log.info("=== TEST: register_returns400_whenUsernameWhitespaceOnly ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.username validation message = 'Username is required'");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"   \",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -151,11 +151,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenPasswordBlank() throws Exception {
         log.info("=== TEST: register_returns400_whenPasswordBlank ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400 — multiple validators may fire; status assertion only");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"u1\",\"password\":\"\"}"))
                 .andDo(print())
@@ -167,11 +167,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenPasswordMissing() throws Exception {
         log.info("=== TEST: register_returns400_whenPasswordMissing ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.password = 'Password is required'");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"u1\"}"))
                 .andDo(print())
@@ -184,11 +184,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenPasswordShorterThan12Chars() throws Exception {
         log.info("=== TEST: register_returns400_whenPasswordShorterThan12Chars ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.password = 'Password must be at least 12 characters long' (8-char password)");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"u2\",\"password\":\"Sh0rt!Pw\"}"))
                 .andDo(print())
@@ -201,11 +201,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenPasswordExactly11Chars() throws Exception {
         log.info("=== TEST: register_returns400_whenPasswordExactly11Chars ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.password = 'Password must be at least 12 characters long' (11-char password)");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"u3\",\"password\":\"Eleven!Pas1\"}"))
                 .andDo(print())
@@ -218,11 +218,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns200_whenPasswordExactly12Chars() throws Exception {
         log.info("=== TEST: register_returns200_whenPasswordExactly12Chars ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, message='User registered successfully' (exactly 12-char password with special char)");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"u4\",\"password\":\"Twelve!Pass1\"}"))
                 .andDo(print())
@@ -235,11 +235,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenPasswordNoSpecialChar() throws Exception {
         log.info("=== TEST: register_returns400_whenPasswordNoSpecialChar ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.password = 'Password must contain at least one special character' (17-char alphanumeric)");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"u5\",\"password\":\"AlphanumericOnly1\"}"))
                 .andDo(print())
@@ -252,11 +252,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenPasswordFailsMultipleRules() throws Exception {
         log.info("=== TEST: register_returns400_whenPasswordFailsMultipleRules ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $.password exists (5-char password fails both length and special-char rules)");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"u6\",\"password\":\"short\"}"))
                 .andDo(print())
@@ -269,11 +269,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_returns400_whenMalformedJson() throws Exception {
         log.info("=== TEST: register_returns400_whenMalformedJson ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 400, $['Field causing the issue'] exists");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ not-json"))
                 .andDo(print())
@@ -286,28 +286,28 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_isPublicEndpoint_noAuthRequired() throws Exception {
         log.info("=== TEST: register_isPublicEndpoint_noAuthRequired ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : No Authorization header");
         log.info("Criteria : HTTP 200 — endpoint is public, no token should be required");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"publicuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("User registered successfully"));
 
-        log.info("PASSED - HTTP 200 returned, /register is accessible without an Authorization header");
+        log.info("PASSED - HTTP 200 returned, /api/soundboard/user/register is accessible without an Authorization header");
     }
 
     @Test
     void register_responseContainsRoleUser_onSuccess() throws Exception {
         log.info("=== TEST: register_responseContainsRoleUser_onSuccess ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, $.role = 'USER' in response body");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"rolecheck1\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -320,11 +320,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_persistsDefaultRole_asUser() throws Exception {
         log.info("=== TEST: register_persistsDefaultRole_asUser ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, persisted Users entity has role == Role.USER");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"rolecheck2\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -340,11 +340,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_roleIsUser_notNullInResponse() throws Exception {
         log.info("=== TEST: register_roleIsUser_notNullInResponse ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : HTTP 200, $.role is present and not null in response body");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"rolecheck3\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())
@@ -358,11 +358,11 @@ public class RegisterTests extends BaseIntegrationTest {
     @Test
     void register_seedUserHasRoleUser_byDefault() throws Exception {
         log.info("=== TEST: register_seedUserHasRoleUser_byDefault ===");
-        log.info("Endpoint : POST /register");
+        log.info("Endpoint : POST /api/soundboard/user/register");
         log.info("Auth     : None (public endpoint)");
         log.info("Criteria : Persisted Users entity has role == Role.USER and mustChangePassword == false after registration");
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("/api/soundboard/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"defaultroleuser\",\"password\":\"Str0ng!Pass#2026\"}"))
                 .andDo(print())

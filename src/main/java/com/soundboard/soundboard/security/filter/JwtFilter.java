@@ -21,11 +21,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
   public static final String MUST_CHANGE_PASSWORD_ATTR = "com.soundboard.security.mustChangePassword";
+
+  private static final Set<String> ALLOWED_WHEN_MUST_CHANGE = Set.of("POST /api/soundboard/user/password-reset");
   
   @Autowired
   JWTService jwtService;
@@ -82,9 +85,22 @@ public class JwtFilter extends OncePerRequestFilter {
 
         boolean mustChangePassword = jwtService.extractMustChangePassword(token);
         request.setAttribute(MUST_CHANGE_PASSWORD_ATTR, mustChangePassword);
+
+        if (mustChangePassword && !isAllowedWhenMustChange(request)) {
+          response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+          response.setContentType("application/json");
+          response.setCharacterEncoding("UTF-8");
+          response.getWriter().write("{\"error\":\"Password change required before accessing this resource\"}");
+          return;
+        }
       }
     }
     filterChain.doFilter(request, response);
+  }
+
+  private static boolean isAllowedWhenMustChange(HttpServletRequest request) {
+    String key = request.getMethod().toUpperCase() + " " + request.getRequestURI();
+    return ALLOWED_WHEN_MUST_CHANGE.contains(key);
   }
 
   private static String stripRolePrefix(String role) {

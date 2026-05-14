@@ -82,6 +82,17 @@ public class SoundSeeder {
         return userRepo.save(user);
     }
 
+    public Users seedUserWithMustChangePassword(String username, String rawPassword) {
+        Users user = Users.builder()
+                .username(username)
+                .password(passwordEncoder.encode(rawPassword))
+                .createdAt(Instant.now())
+                .active(true)
+                .mustChangePassword(true)
+                .build();
+        return userRepo.save(user);
+    }
+
     public void clearAll() {
         soundRepository.deleteAll();
         userRepo.deleteAll();
