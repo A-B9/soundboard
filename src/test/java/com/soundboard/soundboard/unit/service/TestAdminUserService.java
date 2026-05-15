@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.unit.service;
 
+import com.soundboard.soundboard.audit.AuditLogger;
 import com.soundboard.soundboard.config.AdminProperties;
 import com.soundboard.soundboard.mapper.IMapper;
 import com.soundboard.soundboard.models.Role;
@@ -42,13 +43,14 @@ class TestAdminUserService {
     @Mock private AdminProperties adminProperties;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private IMapper mapper;
+    @Mock private AuditLogger auditLogger;
 
     private AdminUserService service;
 
     @BeforeEach
     void setUp() {
         service = new AdminUserService(userRepo, soundRepository, audioStorageService,
-                adminProperties, passwordEncoder, mapper);
+                adminProperties, passwordEncoder, mapper, auditLogger);
     }
 
     // --- listUsers ---

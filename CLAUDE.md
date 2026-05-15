@@ -35,9 +35,10 @@ Spring Boot 4 / Java 21 REST API for audio file management with JWT authenticati
 - `service/` — Business logic (`SoundService`, `UserService`, `AdminUserService`, `LocalAudioStorageService`, `MyUserDetailsService`, `IService`)
 - `repository/` — Spring Data JPA repos (`SoundRepository`, `MyUserRepo`)
 - `models/` — JPA entities, DTOs, `Role` enum, `requestModels/`, `responseModels/sound/`, `responseModels/user/`
-- `security/` — `SecurityConfig`, `JWTService`, `MyUserPrincipal`, and `security/filter/JwtFilter`
+- `security/` — `SecurityConfig`, `JWTService`, `MyUserPrincipal`, and `security/filter/` (`JwtFilter`, `LoginRateLimitFilter`)
 - `bootstrap/` — `SuperAdminBootstrapper` (seeds SUPER_ADMIN on startup when configured)
-- `config/` — `AdminProperties`, `BootstrapProperties`, `AdminConfigValidator`
+- `config/` — `AdminProperties`, `BootstrapProperties`, `AdminConfigValidator`, `LoginRateLimitProperties`
+- `audit/` — `AuditLogger` (`@Component`, named SLF4J logger `"AUDIT"`), `AuditAction` enum
 - `exceptions/` — `SoundNotFoundException`, `ValidationExceptionHandler`
 - `util/`, `audio/`, `mapper/`, `annotation/` — Constants, enums, audio storage config (`AudioStorageProperties`), MapStruct mappers, custom annotations (`@CurrentUser`)
 
@@ -62,7 +63,7 @@ Spring Boot 4 / Java 21 REST API for audio file management with JWT authenticati
 
 ## Security
 
-- Stateless JWT auth (JJWT 0.12.6); custom `JwtFilter` (in `security/filter/`) runs before `UsernamePasswordAuthenticationFilter`
+- Stateless JWT auth (JJWT 0.12.6); two custom filters in `security/filter/`: `LoginRateLimitFilter` (runs before `LogoutFilter`, position ~1099) → `JwtFilter` (runs before `UsernamePasswordAuthenticationFilter`, position ~1799)
 - BCrypt strength 10 (`Constants.BCRYPT_STRENGTH`); CSRF disabled
 - Tokens issued on `POST /api/soundboard/user/login`, expire after 2 hours, signed with HMAC-SHA (HS256/HS384/HS512 auto-selected from key byte length via `Keys.hmacShaKeyFor`) via `app.jwt.secret` (Base64); validated per-request via filter
 - **JWT claims**: `sub` (username), `iss=soundboard` (required on parse — tokens with wrong/missing issuer are rejected), `role` (`USER`/`ADMIN`/`SUPER_ADMIN`), `mustChangePassword` (boolean; absent treated as `false`), `iat`, `exp`. Authorities are built from the JWT `role` claim per-request — no DB lookup; role changes take effect on next login.
@@ -76,6 +77,8 @@ Spring Boot 4 / Java 21 REST API for audio file management with JWT authenticati
 - CORS allow-list driven by `app.cors.allowed-origins` (defaults to `http://localhost:3000`); applied to `/api/**` only; allowed methods `GET/POST/DELETE/OPTIONS`, allowed headers `Authorization`/`Content-Type`, credentials disabled. **Note: `PATCH` is not in the allowed methods** despite admin PATCH endpoints existing — browser-based calls to admin PATCH endpoints from a CORS origin will fail the preflight.
 - Security headers: `X-Content-Type-Options`, `X-Frame-Options: SAMEORIGIN`, HSTS (1y, includeSubDomains), `Referrer-Policy: no-referrer`, cache-control
 - HTTPS redirect controlled by `security.require-https` (default `false`; set `true` in prod via `application-prod.properties`)
+- **Login rate limiting**: `LoginRateLimitFilter` enforces per-IP Bucket4j token-bucket limits on `POST /api/soundboard/user/login` only. Exhausted bucket → HTTP 429 with `{"error":"Too many login attempts. Please try again later."}`. IP extracted from `X-Forwarded-For` header first, falling back to `remoteAddr`. Configured via `app.rate-limit.login.{capacity, refill-tokens, refill-period-seconds}` (defaults 10 / 10 / 60 s). Integration tests override to `capacity=1000` in `application-test.properties` to avoid interfering with login test suites that make many requests.
+- **Audit logging**: all security-relevant events (user create/delete, active toggle, password-change flag, bootstrap) flow through `AuditLogger` to the named SLF4J logger `"AUDIT"` at `WARN` level. Actions: `BOOTSTRAP_SUPER_ADMIN_CREATED`, `USER_ACTIVE_TOGGLED`, `USER_MUST_CHANGE_PASSWORD_SET`, `USER_CREATED`, `USER_HARD_DELETED`, `DISK_FILE_DELETE_FAILED`. Format: `action=<ACTION> [role='<ROLE>' actor='<USERNAME>'] <details>`. Route independently via `logback-spring.xml` `<logger name="AUDIT">` if needed.
 
 ## Bootstrap & Admin Config
 
@@ -113,16 +116,16 @@ Max upload size: 10 MB (`spring.servlet.multipart.max-file-size`).
 
 ## Testing
 
-- `src/test/.../unit/service/` — Mockito unit tests (`TestUserService`, `TestSoundService`, `TestAdminUserService`, `TestMeService`, `TestJWTService`)
+- `src/test/.../unit/service/` — Mockito unit tests (`TestUserService`, `TestSoundService`, `TestAdminUserService`, `TestJWTService`); `TestMeService` tests `UserService.changePassword` — the class is named for the old `MeService` which no longer exists
 - `src/test/.../unit/mapper/` — Lightweight Spring context mapper tests (`TestMapper`)
 - `src/test/.../unit/bootstrap/` — Unit tests for `SuperAdminBootstrapper` (`TestSuperAdminBootstrapper`)
 - `src/test/.../unit/config/` — Unit tests for config validation (`TestAdminProperties`)
-- `src/test/.../unit/security/` — Unit tests for `MyUserPrincipal` (`TestMyUserPrincipal`)
+- `src/test/.../unit/security/` — Unit tests for `MyUserPrincipal` (`TestMyUserPrincipal`), `LoginRateLimitFilter` (`TestLoginRateLimitFilter`)
+- `src/test/.../unit/audit/` — Unit tests for `AuditLogger` (`TestAuditLogger`); uses Logback `ListAppender<ILoggingEvent>` attached to the `"AUDIT"` logger — no file I/O, no mocking
 - `src/test/.../integration/` — TestContainers integration tests with `BaseIntegrationTest`, organised under:
   - `controller/sound/` (`CreateTests`, `GetTests`, `PatchTests`, `DeleteTests`)
-  - `controller/user/` (`RegisterTests`, `LoginTests`)
+  - `controller/user/` (`RegisterTests`, `LoginTests`, `ChangePasswordTests`, `LoginRateLimitTests`)
   - `controller/admin/` (`AdminSecurityTests`, `AdminUserCreateTests`, `AdminUserGetTests`, `AdminUserHardDeleteTests`, `AdminUserListTests`, `AdminUserToggleActiveTests`)
-  - `controller/me/` (`ChangePasswordTests`)
   - `bootstrap/` (`SuperAdminBootstrapIntegrationTest`)
 - Shared seed data in `fixtures/SoundSeeder`
 - `TestJwtHelper.java` — shared JWT utility for integration tests

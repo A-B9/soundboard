@@ -1,5 +1,7 @@
 package com.soundboard.soundboard.service;
 
+import com.soundboard.soundboard.audit.AuditAction;
+import com.soundboard.soundboard.audit.AuditLogger;
 import com.soundboard.soundboard.config.AdminProperties;
 import com.soundboard.soundboard.mapper.IMapper;
 import com.soundboard.soundboard.models.Role;
@@ -11,8 +13,6 @@ import com.soundboard.soundboard.models.requestModels.PatchUserRequest;
 import com.soundboard.soundboard.repository.MyUserRepo;
 import com.soundboard.soundboard.repository.SoundRepository;
 import com.soundboard.soundboard.security.MyUserPrincipal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,27 +27,28 @@ import java.util.UUID;
 @Service
 public class AdminUserService {
 
-    private static final Logger log = LoggerFactory.getLogger(AdminUserService.class);
-
     private final MyUserRepo userRepo;
     private final SoundRepository soundRepository;
     private final LocalAudioStorageService audioStorageService;
     private final AdminProperties adminProperties;
     private final PasswordEncoder passwordEncoder;
     private final IMapper mapper;
+    private final AuditLogger auditLogger;
 
     public AdminUserService(MyUserRepo userRepo,
                             SoundRepository soundRepository,
                             LocalAudioStorageService audioStorageService,
                             AdminProperties adminProperties,
                             PasswordEncoder passwordEncoder,
-                            IMapper mapper) {
+                            IMapper mapper,
+                            AuditLogger auditLogger) {
         this.userRepo = userRepo;
         this.soundRepository = soundRepository;
         this.audioStorageService = audioStorageService;
         this.adminProperties = adminProperties;
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
+        this.auditLogger = auditLogger;
     }
 
     // --- List ---
@@ -78,8 +79,8 @@ public class AdminUserService {
         requireNotSelf(caller, target, "toggle active status of");
         target.setActive(!target.isActive());
         userRepo.save(target);
-        log.warn("AUDIT: {} '{}' toggled active={} on user '{}'",
-                caller.getRole(), caller.getUsername(), target.isActive(), target.getUsername());
+        auditLogger.log(AuditAction.USER_ACTIVE_TOGGLED, caller,
+                "active=%s for user '%s'".formatted(target.isActive(), target.getUsername()));
         return mapper.toUserDTO(target);
     }
     
@@ -96,8 +97,8 @@ public class AdminUserService {
         
         target.setMustChangePassword(request.mustChangePassword());
         userRepo.save(target);
-        log.warn("AUDIT: {} '{}' set mustChangePassword={} on user '{}'",
-                caller.getRole(), caller.getUsername(), request.mustChangePassword(), target.getUsername());
+        auditLogger.log(AuditAction.USER_MUST_CHANGE_PASSWORD_SET, caller,
+                "mustChangePassword=%s for user '%s'".formatted(request.mustChangePassword(), target.getUsername()));
         return mapper.toUserDTO(target);
     }
 
@@ -121,8 +122,9 @@ public class AdminUserService {
                 .mustChangePassword(adminProperties.forcePasswordChange())
                 .build();
         Users saved = userRepo.save(newUser);
-        log.warn("AUDIT: SUPER_ADMIN '{}' created user '{}' with role={} mustChangePassword={}",
-                caller.getUsername(), saved.getUsername(), saved.getRole(), saved.isMustChangePassword());
+        auditLogger.log(AuditAction.USER_CREATED, caller,
+                "created user '%s' role=%s mustChangePassword=%s"
+                        .formatted(saved.getUsername(), saved.getRole(), saved.isMustChangePassword()));
         return mapper.toUserDTO(saved);
     }
 
@@ -146,12 +148,13 @@ public class AdminUserService {
                 try {
                     audioStorageService.deleteAudioFile(sound.getStoredName());
                 } catch (IOException e) {
-                    log.warn("AUDIT: Failed to delete disk file for sound {}: {}", sound.getId(), e.getMessage());
+                    auditLogger.warn(AuditAction.DISK_FILE_DELETE_FAILED,
+                            "soundId=%s error=%s".formatted(sound.getId(), e.getMessage()));
                 }
             }
         }
-        log.warn("AUDIT: SUPER_ADMIN '{}' hard-deleted user '{}' and {} associated sounds",
-                caller.getUsername(), target.getUsername(), sounds.size());
+        auditLogger.log(AuditAction.USER_HARD_DELETED, caller,
+                "deleted user '%s' and %d sounds".formatted(target.getUsername(), sounds.size()));
     }
 
     // --- Helpers ---
