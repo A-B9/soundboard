@@ -72,7 +72,8 @@ Spring Boot 4 / Java 21 REST API for audio file management with JWT authenticati
 - Malformed/tampered JWTs caught in `JwtFilter` and result in 401, not 500
 - **Forced password-change gate**: when the JWT `mustChangePassword` claim is `true`, `JwtFilter` short-circuits every request (even authenticated ones) with HTTP **403** and body `{"error":"Password change required before accessing this resource"}`, except `POST /api/soundboard/user/password-reset`. Enforcement is claim-based — clearing the DB flag has no effect until a new token is issued.
 - **Role-based access**: two enforcement layers — (1) URL guard in `SecurityConfig` (`/api/soundboard/admin/**` requires `ADMIN` or `SUPER_ADMIN`); (2) `@PreAuthorize` on individual `AdminUserController` methods (`SUPER_ADMIN`-only on `POST` and `DELETE /{id}/hard-delete`). `@EnableMethodSecurity` + `AnnotationTemplateExpressionDefaults` bean enable SpEL template expressions.
-- Password strength: minimum 12 characters. `RegisterRequest` and `ChangePasswordRequest` use `.*[^a-zA-Z0-9].*` (any non-alphanumeric). `CreateAdminUserRequest` uses a stricter explicit allow-list regex (`!@#$%^&*()_+-=[]{};':"\\|,.<>/?`) — these are intentionally different; align before relying on interchangeability.
+- Password strength: minimum 12 characters. `RegisterRequest` and `ChangePasswordRequest` use `.*[^a-zA-Z0-9].*` (any non-alphanumeric). `CreateAdminUserRequest` uses a stricter explicit allow-list regex (`!@#$%^&*()_+-=[]{};':"\\|,.<>/?`) — these are intentionally different; align before relying on interchangeability. `username` and `displayName` in `CreateAdminUserRequest` are capped at 50 characters via `@Size(max=50)`.
+- `GlobalExceptionHandler` (`web/`) handles `ResponseStatusException` → `ProblemDetail` JSON (RFC 7807); `IllegalArgumentException` and `MethodArgumentTypeMismatchException` also handled there. `ValidationExceptionHandler` (`exceptions/`) handles `MethodArgumentNotValidException` (field errors map) and `HttpMessageNotReadableException` — including enum deserialization failures, which return `{"error":"Invalid value '...' for field '...'"}`.
 - `POST /api/soundboard/user/register` and `POST /api/soundboard/user/login` use dedicated request DTOs — JPA entity is never bound directly from HTTP request body
 - CORS allow-list driven by `app.cors.allowed-origins` (defaults to `http://localhost:3000`); applied to `/api/**` only; allowed methods `GET/POST/DELETE/OPTIONS`, allowed headers `Authorization`/`Content-Type`, credentials disabled. **Note: `PATCH` is not in the allowed methods** despite admin PATCH endpoints existing — browser-based calls to admin PATCH endpoints from a CORS origin will fail the preflight.
 - Security headers: `X-Content-Type-Options`, `X-Frame-Options: SAMEORIGIN`, HSTS (1y, includeSubDomains), `Referrer-Policy: no-referrer`, cache-control
@@ -131,11 +132,11 @@ Max upload size: 10 MB (`spring.servlet.multipart.max-file-size`).
 - `TestJwtHelper.java` — shared JWT utility for integration tests
 - `src/test/resources/application-test.properties` — test profile config (TestContainers overrides datasource via `@DynamicPropertySource`)
 - `src/test/.../docs/` — internal notes on test design and security fixes
-- Target: 85% minimum line coverage across all layers
+- Target: 85% minimum line coverage across all layers; enforced by JaCoCo in the `verify` phase
 
 ## CI (GitHub Actions)
 
-- **build-project.yml** — triggered on push/PR to `master`; runs `mvn -B package` with JDK 21 (Temurin)
+- **build-project.yml** — triggered on push/PR to `master`; runs `mvn -B verify` with JDK 21 (Temurin); JaCoCo 0.8.12 enforces 85% line coverage at the `verify` phase — build fails if coverage drops below threshold
 - **code-quality.yml** — SpotBugs on push/PR to `master`; parses `target/spotbugsXml.xml`, posts a summary comment on PRs, fails the job on any High-severity bug. OWASP Dependency Check job is present but commented out.
 
 ## Docker

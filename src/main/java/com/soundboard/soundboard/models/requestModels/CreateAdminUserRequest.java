@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record CreateAdminUserRequest(
-        @NotBlank String username,
+        @NotBlank @Size(max = 50) String username,
 
         @NotBlank
         @Size(min = 12, message = "Password must be at least 12 characters")
@@ -19,5 +19,5 @@ public record CreateAdminUserRequest(
 
         @NotNull Role role,
 
-        String displayName
+        @Size(max = 50) String displayName
 ) {}

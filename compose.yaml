@@ -25,10 +25,10 @@ services:
     ports:
       - 8080:8080
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/soundboard # where db is the name of the service on line 2
-      SPRING_DATASOURCE_USERNAME: soundboard_user
-      SPRING_DATASOURCE_PASSWORD: pass #${DB_PASSWORD} # pulled from a .env file
-      APP_SOUNDS_DIRECTORY: ./sounds
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL} # where db is the name of the service on line 2
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD} # pulled from a .env file
+      APP_SOUNDS_DIRECTORY: ${APP_SOUNDS_DIRECTORY}
       APP_BOOTSTRAP_USERNAME: ${APP_BOOTSTRAP_USERNAME}
       APP_BOOTSTRAP_PASSWORD: ${APP_BOOTSTRAP_PASSWORD}
     depends_on:
