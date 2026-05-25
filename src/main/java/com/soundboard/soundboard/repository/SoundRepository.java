@@ -1,6 +1,7 @@
 package com.soundboard.soundboard.repository;
 
 import com.soundboard.soundboard.models.SoundEntity;
+import com.soundboard.soundboard.util.SoundCategoryEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -35,5 +36,40 @@ public interface SoundRepository extends JpaRepository<SoundEntity, UUID> {
   List<SoundEntity> findAllByOwnedBy(String ownedBy);
 
   Optional<SoundEntity> findByIdAndOwnedBy(UUID id, String ownedBy);
+
+  @Query(value = "SELECT s FROM SoundEntity s WHERE s.ownedBy = :username AND s.category = :category",
+         countQuery = "SELECT COUNT(s) FROM SoundEntity s WHERE s.ownedBy = :username AND s.category = :category")
+  Page<SoundEntity> findAllByOwnedByAndCategory(Pageable pageable,
+                                                 @Param("username") String username,
+                                                 @Param("category") SoundCategoryEnum category);
+
+  @Query(value = """
+    SELECT s FROM SoundEntity s
+    WHERE s.ownedBy = :username
+    AND EXISTS (SELECT t FROM s.tags t WHERE UPPER(t) = UPPER(:tag))
+    """,
+    countQuery = """
+    SELECT COUNT(s) FROM SoundEntity s
+    WHERE s.ownedBy = :username
+    AND EXISTS (SELECT t FROM s.tags t WHERE UPPER(t) = UPPER(:tag))
+    """)
+  Page<SoundEntity> findAllByOwnedByAndTag(Pageable pageable,
+                                            @Param("username") String username,
+                                            @Param("tag") String tag);
+
+  @Query(value = """
+    SELECT s FROM SoundEntity s
+    WHERE s.ownedBy = :username AND s.category = :category
+    AND EXISTS (SELECT t FROM s.tags t WHERE UPPER(t) = UPPER(:tag))
+    """,
+    countQuery = """
+    SELECT COUNT(s) FROM SoundEntity s
+    WHERE s.ownedBy = :username AND s.category = :category
+    AND EXISTS (SELECT t FROM s.tags t WHERE UPPER(t) = UPPER(:tag))
+    """)
+  Page<SoundEntity> findAllByOwnedByAndCategoryAndTag(Pageable pageable,
+                                                       @Param("username") String username,
+                                                       @Param("category") SoundCategoryEnum category,
+                                                       @Param("tag") String tag);
 
 }

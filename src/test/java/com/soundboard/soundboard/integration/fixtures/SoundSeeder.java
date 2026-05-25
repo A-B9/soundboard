@@ -4,11 +4,13 @@ import com.soundboard.soundboard.models.SoundEntity;
 import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.repository.MyUserRepo;
 import com.soundboard.soundboard.repository.SoundRepository;
+import com.soundboard.soundboard.util.SoundCategoryEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.List;
 
 @Component
 public class SoundSeeder {
@@ -91,6 +93,23 @@ public class SoundSeeder {
                 .mustChangePassword(true)
                 .build();
         return userRepo.save(user);
+    }
+
+    public SoundEntity seedSoundWithCategoryAndTags(String name, String ownedBy,
+                                                     SoundCategoryEnum category, List<String> tags) {
+        SoundEntity sound = SoundEntity.builder()
+                .name(name)
+                .description("Test description for " + name)
+                .contentType("audio/wav")
+                .audioFile(new byte[]{1, 2, 3})
+                .createdAt(Instant.now())
+                .storedName(name.toLowerCase() + ".wav")
+                .ownedBy(ownedBy)
+                .size(3L)
+                .build();
+        sound.setCategory(category);
+        sound.setTags(tags);
+        return soundRepository.save(sound);
     }
 
     public void clearAll() {

@@ -63,6 +63,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/soundboard/user/register", "/api/soundboard/user/login").permitAll()
                             .requestMatchers("/api/soundboard/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                             .requestMatchers("/api/soundboard/user/password-reset").authenticated()
+                            .requestMatchers("/error").permitAll()
                             .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
