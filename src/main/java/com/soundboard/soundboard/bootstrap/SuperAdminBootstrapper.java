@@ -1,5 +1,7 @@
 package com.soundboard.soundboard.bootstrap;
 
+import com.soundboard.soundboard.audit.AuditAction;
+import com.soundboard.soundboard.audit.AuditLogger;
 import com.soundboard.soundboard.config.AdminProperties;
 import com.soundboard.soundboard.config.BootstrapProperties;
 import com.soundboard.soundboard.models.Role;
@@ -26,17 +28,20 @@ public class SuperAdminBootstrapper implements ApplicationRunner {
     private final MyUserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
     private final Environment env;
+    private final AuditLogger auditLogger;
 
     public SuperAdminBootstrapper(BootstrapProperties bootstrapProperties,
                                   AdminProperties adminProperties,
                                   MyUserRepo userRepo,
                                   PasswordEncoder passwordEncoder,
-                                  Environment env) {
+                                  Environment env,
+                                  AuditLogger auditLogger) {
         this.bootstrapProperties = bootstrapProperties;
         this.adminProperties = adminProperties;
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.env = env;
+        this.auditLogger = auditLogger;
     }
 
     @Override
@@ -76,6 +81,7 @@ public class SuperAdminBootstrapper implements ApplicationRunner {
                 .build();
         userRepo.save(superAdmin);
 
-        log.warn("AUDIT: Bootstrap SUPER_ADMIN '{}' created. mustChangePassword={}", username, mustChange);
+        auditLogger.log(AuditAction.BOOTSTRAP_SUPER_ADMIN_CREATED,
+                "bootstrapped SUPER_ADMIN '%s' mustChangePassword=%s".formatted(username, mustChange));
     }
 }

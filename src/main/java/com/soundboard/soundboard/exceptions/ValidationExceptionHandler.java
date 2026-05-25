@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.exc.InvalidFormatException;
 import tools.jackson.databind.exc.UnrecognizedPropertyException;
 
 import java.util.HashMap;
@@ -35,6 +36,16 @@ public class ValidationExceptionHandler {
   public Map<String, String> handleNotReadableJson(HttpMessageNotReadableException ex, HttpServletRequest request) {
     Map<String, String> errors = new HashMap<>();
     Throwable cause = ex.getMostSpecificCause();
+    if (cause instanceof InvalidFormatException formatEx
+            && formatEx.getTargetType() != null
+            && formatEx.getTargetType().isEnum()) {
+      String fieldName = formatEx.getPath() != null && !formatEx.getPath().isEmpty()
+              ? formatEx.getPath().get(0).getPropertyName()
+              : "unknown";
+      if (fieldName == null) fieldName = "unknown";
+      errors.put("error", "Invalid value '" + formatEx.getValue() + "' for field '" + fieldName + "'");
+      return errors;
+    }
     if (cause instanceof UnrecognizedPropertyException unrecognizedPropertyException) {
       String badField = unrecognizedPropertyException.getPropertyName();
       

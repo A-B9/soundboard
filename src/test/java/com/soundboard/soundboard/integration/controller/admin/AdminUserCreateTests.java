@@ -146,4 +146,33 @@ class AdminUserCreateTests extends BaseIntegrationTest {
                                 """))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void createUser_returns400_whenRoleIsInvalid() throws Exception {
+        seeder.seedSuperAdmin("sa-caller");
+        String token = jwtHelper.generateTokenForUser("sa-caller", Role.SUPER_ADMIN);
+
+        mockMvc.perform(post("/api/soundboard/admin/users")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"new-user","password":"SecurePass123!","role":"HACKER"}
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createUser_returns400_whenUsernameExceedsMaxLength() throws Exception {
+        seeder.seedSuperAdmin("sa-caller");
+        String token = jwtHelper.generateTokenForUser("sa-caller", Role.SUPER_ADMIN);
+        String longUsername = "a".repeat(51);
+
+        mockMvc.perform(post("/api/soundboard/admin/users")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"%s","password":"SecurePass123!","role":"USER"}
+                                """.formatted(longUsername)))
+                .andExpect(status().isBadRequest());
+    }
 }

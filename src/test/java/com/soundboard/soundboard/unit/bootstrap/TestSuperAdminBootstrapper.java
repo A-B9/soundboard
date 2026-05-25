@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.unit.bootstrap;
 
+import com.soundboard.soundboard.audit.AuditLogger;
 import com.soundboard.soundboard.bootstrap.SuperAdminBootstrapper;
 import com.soundboard.soundboard.config.AdminProperties;
 import com.soundboard.soundboard.config.BootstrapProperties;
@@ -29,11 +30,12 @@ class TestSuperAdminBootstrapper {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private Environment env;
     @Mock private ApplicationArguments args;
+    @Mock private AuditLogger auditLogger;
 
     private SuperAdminBootstrapper bootstrapper(String username, String password, boolean forceChange) {
         BootstrapProperties bp = new BootstrapProperties(username, password);
         AdminProperties ap = new AdminProperties(forceChange);
-        return new SuperAdminBootstrapper(bp, ap, userRepo, passwordEncoder, env);
+        return new SuperAdminBootstrapper(bp, ap, userRepo, passwordEncoder, env, auditLogger);
     }
 
     @BeforeEach
