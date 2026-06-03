@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.web;
 
+import com.soundboard.soundboard.models.AudioDownload;
 import com.soundboard.soundboard.models.requestModels.PatchSoundRequest;
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
 import com.soundboard.soundboard.models.responseModels.PagedResponse;
@@ -123,12 +124,12 @@ public class SoundController {
             @AuthenticationPrincipal UserDetails userDetails
     ) throws IOException {
         try {
-            Resource audioResource = soundService.getAudioFile(id, userDetails.getUsername());
+            AudioDownload audioResource = soundService.getAudioFile(id, userDetails.getUsername());
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType("audio/wav"))
+                    .contentType(MediaType.parseMediaType(audioResource.contentType()))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + audioResource.getFilename() + "\"")
-                    .body(audioResource);
+                            "attachment; filename=\"" + audioResource.audioResource().getFilename() + "\"")
+                    .body(audioResource.audioResource());
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
         }

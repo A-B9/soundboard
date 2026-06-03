@@ -31,8 +31,6 @@ public class SoundEntity {
     private String name;
     private String description;
     private String contentType;
-    @Lob
-    private byte[] audioFile;
     private Instant createdAt;
     private String storedName;
     private long size;
@@ -49,24 +47,16 @@ public class SoundEntity {
 
     @Builder
     public SoundEntity(String name, String description,
-                       String contentType, byte[] audioFile,
+                       String contentType,
                        Instant createdAt, String storedName,
                        String ownedBy, long size) {
         this.name = name;
         this.description = description;
         this.contentType = contentType;
-        this.audioFile = audioFile;
         this.createdAt = createdAt;
         this.storedName = storedName;
         this.ownedBy = ownedBy;
         this.size = size;
-    }
-
-    public byte[] getAudioFile() {
-        return audioFile != null ? audioFile.clone() : null;
-    }
-    public void setAudioFile(byte[] audioFile) {
-        this.audioFile = audioFile != null ? audioFile.clone() : null;
     }
 
 }

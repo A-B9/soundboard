@@ -29,7 +29,6 @@ public interface IMapper {
   @Mapping(target = "contentType", source = "file.contentType")
   @Mapping(target = "size", source = "file.size")
   @Mapping(target = "createdAt", expression = "java(java.time.Instant.now())")
-  @Mapping(target = "audioFile", source = "file.bytes")
   SoundEntity toEntity(SoundRequestModel soundRequestModel, MultipartFile file) throws IOException;
 
   GetSoundResponse toGetResponse(SoundEntity entity);

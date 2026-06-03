@@ -330,7 +330,7 @@ class TestAdminUserService {
     private SoundEntity sound(String ownedBy) {
         return SoundEntity.builder()
                 .name("test-sound").description("desc")
-                .contentType("audio/wav").audioFile(new byte[]{1})
+                .contentType("audio/wav")
                 .createdAt(Instant.now()).storedName("2024/01/01/test.wav")
                 .ownedBy(ownedBy).size(1L).build();
     }
