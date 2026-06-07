@@ -10,6 +10,7 @@ import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
 import com.soundboard.soundboard.service.SoundService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -40,6 +42,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+@Validated
 @RestController
 @RequestMapping("/api/soundboard")
 public class SoundController {
@@ -70,7 +73,11 @@ public class SoundController {
     public ResponseEntity<PagedResponse<ResponseBodyModel>> getAllSounds(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
+            @Pattern(
+                    regexp = "createdAt|recentUpdate|name|category",
+                    message = "The sortBy field only accepts the following fields: createdAt, recentUpdate, name, category"
+            )
+            @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "true") boolean ascending,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String tag,

@@ -1,6 +1,8 @@
 package com.soundboard.soundboard.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -25,6 +27,20 @@ public class ValidationExceptionHandler {
             (error) -> {
               String fieldName = ((FieldError) error).getField();
               String errorMessage = error.getDefaultMessage();
+              errors.put(fieldName, errorMessage);
+            }
+    );
+    return errors;
+  }
+  
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(ConstraintViolationException.class)
+  public Map<String, String> handleValidationExceptions(ConstraintViolationException ex) {
+    Map<String, String> errors = new HashMap<>();
+    ex.getConstraintViolations().forEach(
+            (violation) -> {
+              String fieldName = violation.getPropertyPath().toString();
+              String errorMessage = violation.getMessage();
               errors.put(fieldName, errorMessage);
             }
     );
