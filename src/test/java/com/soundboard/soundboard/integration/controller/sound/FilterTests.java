@@ -11,6 +11,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.sql.Time;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,6 +32,8 @@ public class FilterTests extends BaseIntegrationTest {
     private TestJwtHelper jwtHelper;
 
     private String token;
+    
+    private static final String ENDPOINT = "/api/soundboard/sounds";
 
     @BeforeAll
     void setUpClass() {
@@ -151,7 +154,7 @@ public class FilterTests extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
     }
-
+    
     @Test
     void noFilters_returnsAllSounds() throws Exception {
         seeder.seedSoundWithCategoryAndTags("Sound A", "filteruser", SoundCategoryEnum.BATTLE, List.of("a"));
@@ -163,4 +166,40 @@ public class FilterTests extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2));
     }
+    
+    @Test
+    void sortByValidField_CreatedAt() throws Exception {
+        seeder.seedSound("sound1", "filteruser");
+        seeder.seedSound("sound2", "filteruser");
+        
+        mockMvc.perform(get(ENDPOINT+"?sortBy=createdAt")
+                .header("Authorization", "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name").value("sound1"))
+                .andExpect(jsonPath("$.content[1].name").value("sound2"));
+    }
+    
+    @Test
+    void sortByInvalidField_Password() throws Exception {
+        mockMvc.perform(get(ENDPOINT+"?sortBy=password")
+                        .header("Authorization", "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+    
+    @Test
+    void sortByValidField_Category() throws Exception {
+        seeder.seedSoundWithCategoryAndTags("sound1", "filteruser", SoundCategoryEnum.BATTLE, List.of());
+        seeder.seedSoundWithCategoryAndTags("sound2", "filteruser", SoundCategoryEnum.EPIC, List.of());
+        
+        mockMvc.perform(get(ENDPOINT+"?sortBy=category")
+                        .header("Authorization", "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name").value("sound1"))
+                .andExpect(jsonPath("$.content[1].name").value("sound2"));
+    }
+    
+    
 }

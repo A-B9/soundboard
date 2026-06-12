@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.0</version>
+		<version>4.0.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.soundboard</groupId>
@@ -68,6 +68,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-restclient-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>3.1.0</version>
 		</dependency>
 
 		<dependency>
@@ -238,6 +244,7 @@
 					<threshold>Medium</threshold> <!-- Min severity to report: Low, Medium, High -->
 					<failOnError>false</failOnError>
 					<xmlOutput>true</xmlOutput>
+<!--					<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>-->
 				</configuration>
 			</plugin>
 			<plugin>

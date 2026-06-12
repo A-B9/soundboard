@@ -3,12 +3,14 @@ package com.soundboard.soundboard.unit.service;
 import com.soundboard.soundboard.audio.AudioStorageProperties;
 import com.soundboard.soundboard.exceptions.SoundNotFoundException;
 import com.soundboard.soundboard.mapper.IMapper;
+import com.soundboard.soundboard.models.AudioDownload;
 import com.soundboard.soundboard.models.SoundEntity;
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
 import com.soundboard.soundboard.models.responseModels.sound.GetSoundResponse;
 import com.soundboard.soundboard.repository.SoundRepository;
 import com.soundboard.soundboard.service.LocalAudioStorageService;
 import com.soundboard.soundboard.service.SoundService;
+import org.apache.tika.Tika;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +21,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -28,6 +32,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,6 +52,9 @@ class TestSoundService {
   
   @Mock
   private IMapper mapper;
+  
+  @Mock
+  Tika tika;
   
   @InjectMocks // creates a real instance of the class and injects mocks into it automatically.
   private SoundService soundService;
@@ -68,6 +76,7 @@ class TestSoundService {
     when(file.getInputStream()).thenReturn(mock(InputStream.class));
     when(storageService.storeAudioFile(any(), any())).thenReturn("stored/file/path");
     when(properties.allowedMimeTypes()).thenReturn(Set.of("audio/wav", "audio/mpeg"));
+    when(tika.detect(any(BufferedInputStream.class))).thenReturn("audio/wav");
     
     // Act
     // Call the method being tested
@@ -178,13 +187,14 @@ class TestSoundService {
     SoundEntity soundEntity = SoundEntity.builder()
             .ownedBy(username)
             .storedName("storedName")
+            .contentType("audio/type")
             .build();
-    Resource expected = mock(Resource.class);
+    AudioDownload expected = new AudioDownload("audio/type", mock(Resource.class));
     when(soundRepository.findByIdAndOwnedBy(any(), any())).thenReturn(Optional.of(soundEntity));
-    when(storageService.getAudioResource(any())).thenReturn(expected);
+    when(storageService.getAudioResource(any())).thenReturn(expected.audioResource());
     
     // act
-    Resource result = soundService.getAudioFile(id, username);
+    AudioDownload result = soundService.getAudioFile(id, username);
     
     // assert
     verify(storageService, times(1)).getAudioResource(any());
@@ -203,6 +213,7 @@ class TestSoundService {
     when(file.getInputStream()).thenReturn(inputStream);
     when(storageService.storeAudioFile(any(), any())).thenReturn("stored/file/path");
     when(properties.allowedMimeTypes()).thenReturn(Set.of("audio/wav", "audio/mp3"));
+    when(tika.detect(any(BufferedInputStream.class))).thenReturn("audio/mp3");
     
     soundService.uploadAudio(file, soundEntity);
     

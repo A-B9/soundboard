@@ -17,7 +17,9 @@ public record CreateAdminUserRequest(
         )
         String password,
 
-        @NotNull Role role,
+        @NotNull
+        Role role,
 
-        @Size(max = 50) String displayName
+        @Size(max = 50)
+        String displayName
 ) {}

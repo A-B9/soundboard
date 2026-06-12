@@ -7,8 +7,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.testcontainers.shaded.org.bouncycastle.asn1.cmp.Challenge;
+
+import java.util.Random;
+import java.util.random.RandomGenerator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -91,24 +97,6 @@ class TestLoginRateLimitFilter {
     }
 
     @Test
-    void xForwardedFor_usedAsClientIp() throws Exception {
-        FilterChain chain = mock(FilterChain.class);
-
-        for (int i = 0; i < 2; i++) {
-            MockHttpServletRequest req = loginRequest("127.0.0.1");
-            req.addHeader("X-Forwarded-For", "203.0.113.1, 10.0.0.1");
-            filter.doFilter(req, new MockHttpServletResponse(), chain);
-        }
-
-        MockHttpServletRequest thirdReq = loginRequest("127.0.0.1");
-        thirdReq.addHeader("X-Forwarded-For", "203.0.113.1, 10.0.0.1");
-        MockHttpServletResponse thirdRes = new MockHttpServletResponse();
-        filter.doFilter(thirdReq, thirdRes, chain);
-
-        assertThat(thirdRes.getStatus()).isEqualTo(429);
-    }
-
-    @Test
     void clearBuckets_resetsRateLimitState() throws Exception {
         FilterChain chain = mock(FilterChain.class);
 
@@ -122,10 +110,88 @@ class TestLoginRateLimitFilter {
         filter.doFilter(loginRequest("5.5.5.5"), afterClear, chain);
         assertThat(afterClear.getStatus()).isEqualTo(200);
     }
+    
+    @Test
+    void testXForwardedForHeaderIsNotRead() throws Exception {
+        // mock the security filter chain, this is the spy.
+        FilterChain chain = mock(FilterChain.class);
+        
+        // mock the attacker request with a fake ip set in the header
+        MockHttpServletRequest req1 = loginRequest("10.0.0.1");
+        req1.addHeader("X-Forwarded-For", "203.0.113.1");
+        
+        // send the request, filter should ignore the header ip and only read remote addr ip.
+        filter.doFilter(req1, new MockHttpServletResponse(), chain);
+        
+        // same for second request
+        MockHttpServletRequest req2 = loginRequest("10.0.0.1");
+        req2.addHeader("X-Forwarded-For", "302.0.311.2");
+        filter.doFilter(req2, new MockHttpServletResponse(), chain);
+        
+        // same for third request but we create a response object to read the expected status code.
+        MockHttpServletRequest req3 = loginRequest("10.0.0.1");
+        req3.addHeader("X-Forwarded-For", "302.1.311.999");
+        MockHttpServletResponse thirdRes = new MockHttpServletResponse();
+        filter.doFilter(req3, thirdRes, chain);
+        
+        // capacity for rate limiter set to 2 so 3rd request is rejected.
+        assertThat(thirdRes.getStatus()).isEqualTo(429);
+        verify(chain, times(2)).doFilter(any(), any());
+    }
+    
+    @Test
+    void testFakeIpsDontCreateNewBuckets() throws Exception {
+        FilterChain chain = mock(FilterChain.class);
+        
+        MockHttpServletRequest req = loginRequest("10.0.0.1");
+        int blocked = 0;
+        for  (int i = 0; i < 5; i++) {
+            req.addHeader("X-Forwarded-For", randomIp());
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            filter.doFilter(req, res, chain);
+            if (res.getStatus() == 429) blocked++;
+        }
+        
+        verify(chain, times(CAPACITY_2.capacity())).doFilter(any(), any());
+        assertThat(blocked).isEqualTo(3);
+    }
+    
+    
+    @Test
+    void testFilter() throws Exception {
+        FilterChain chain = mock(FilterChain.class);
+        
+        for  (int i = 0; i < 2; i++) {
+            MockHttpServletRequest req = loginRequest("10.0.0.1");
+            req.addHeader("X-Forwarded-For", randomIp() + ", 10.0.0.1");
+            filter.doFilter(req, new MockHttpServletResponse(), chain);
+        }
+        
+        MockHttpServletRequest reqOverLimit = loginRequest("10.0.0.1");
+        reqOverLimit.addHeader("X-Forwarded-For", randomIp() + ", 10.0.0.1");
+        MockHttpServletResponse res = new MockHttpServletResponse();
+        filter.doFilter(reqOverLimit, res, chain);
+        
+        verify(chain, times(2)).doFilter(any(), any());
+        assertThat(res.getStatus()).isEqualTo(429);
+        
+        
+    }
+    
 
     private static MockHttpServletRequest loginRequest(String remoteAddr) {
         MockHttpServletRequest req = new MockHttpServletRequest("POST", LOGIN_PATH);
         req.setRemoteAddr(remoteAddr);
         return req;
+    }
+    
+    private static String randomIp() {
+        RandomGenerator random = new Random();
+        return String.format("%d.%d.%d.%d",
+                random.nextInt(256),
+                random.nextInt(256),
+                random.nextInt(256),
+                random.nextInt(256)
+        );
     }
 }

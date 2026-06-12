@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.unit.service;
 
+import com.soundboard.soundboard.audit.AuditLogger;
 import com.soundboard.soundboard.models.Role;
 import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.models.requestModels.LoginRequest;
@@ -40,6 +41,9 @@ public class TestUserService {
   AuthenticationManager authenticationManager;
   
   @Mock
+  AuditLogger auditLogger;
+  
+  @Mock
   JWTService jwtService;
   
   private UserService userService;
@@ -47,7 +51,7 @@ public class TestUserService {
   @BeforeEach
   void setUp() {
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(BCRYPT_STRENGTH);
-    userService = new UserService(userRepo, authenticationManager, jwtService, passwordEncoder);
+    userService = new UserService(userRepo, authenticationManager, jwtService, passwordEncoder, auditLogger);
   }
   
   @Test

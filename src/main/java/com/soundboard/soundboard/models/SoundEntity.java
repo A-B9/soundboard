@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
@@ -16,11 +17,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "Sounds")
+@Table(name = "Sounds",
+        indexes = {
+            @Index(name = "idx_sounds_owned_by", columnList = "ownedBy")
+        }
+)
 @Setter
 @Getter
 public class SoundEntity {
@@ -31,8 +37,6 @@ public class SoundEntity {
     private String name;
     private String description;
     private String contentType;
-    @Lob
-    private byte[] audioFile;
     private Instant createdAt;
     private String storedName;
     private long size;
@@ -49,24 +53,31 @@ public class SoundEntity {
 
     @Builder
     public SoundEntity(String name, String description,
-                       String contentType, byte[] audioFile,
+                       String contentType,
                        Instant createdAt, String storedName,
                        String ownedBy, long size) {
         this.name = name;
         this.description = description;
         this.contentType = contentType;
-        this.audioFile = audioFile;
         this.createdAt = createdAt;
         this.storedName = storedName;
         this.ownedBy = ownedBy;
         this.size = size;
     }
-
-    public byte[] getAudioFile() {
-        return audioFile != null ? audioFile.clone() : null;
+    
+    public List<String> getTags() {
+        if  (tags == null) {
+            tags = new ArrayList<>();
+        }
+        return List.copyOf(tags);
     }
-    public void setAudioFile(byte[] audioFile) {
-        this.audioFile = audioFile != null ? audioFile.clone() : null;
+    
+    public void setTags(List<String> tags) {
+        if  (tags == null) {
+            this.tags = new ArrayList<>();
+        } else {
+            this.tags = new ArrayList<>(tags);
+        }
     }
 
 }

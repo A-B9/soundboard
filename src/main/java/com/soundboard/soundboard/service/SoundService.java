@@ -1,6 +1,7 @@
 package com.soundboard.soundboard.service;
 
 import com.soundboard.soundboard.exceptions.SoundNotFoundException;
+import com.soundboard.soundboard.models.AudioDownload;
 import com.soundboard.soundboard.models.requestModels.PatchSoundRequest;
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
 import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
@@ -10,6 +11,7 @@ import com.soundboard.soundboard.audio.AudioStorageProperties;
 import com.soundboard.soundboard.models.SoundEntity;
 import com.soundboard.soundboard.models.responseModels.sound.GetSoundResponse;
 import com.soundboard.soundboard.util.SoundCategoryEnum;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
@@ -38,16 +41,20 @@ public class SoundService {
 
     private final SoundRepository soundRepository;
     private final IMapper mapper;
+    
+    private final Tika tika;
 
     @Autowired
     public SoundService(SoundRepository soundRepository,
                         LocalAudioStorageService storageService,
                         AudioStorageProperties properties,
-                        IMapper mapper) {
+                        IMapper mapper,
+                        Tika tika) {
         this.soundRepository = soundRepository;
         this.properties = properties;
         this.storageService = storageService;
         this.mapper = mapper;
+        this.tika = tika;
     }
 
     public void create(SoundRequestModel soundRequest,
@@ -109,10 +116,10 @@ public class SoundService {
     }
 
     @Transactional(readOnly = true)
-    public Resource getAudioFile(UUID id, String username) throws IOException {
+    public AudioDownload getAudioFile(UUID id, String username) throws IOException {
         SoundEntity entity = soundRepository.findByIdAndOwnedBy(id, username)
                 .orElseThrow(() -> new SoundNotFoundException(id));
-        return storageService.getAudioResource(entity.getStoredName());
+        return new AudioDownload(entity.getContentType(), storageService.getAudioResource(entity.getStoredName()));
     }
 
     public void uploadAudio(MultipartFile file, SoundEntity sound) throws IOException {
@@ -135,6 +142,22 @@ public class SoundService {
         if (mimeType == null || !properties.allowedMimeTypes().contains(mimeType)) {
             throw new IllegalArgumentException("Invalid content-type for the provided file.");
         }
+        try {
+            // read the magic bytes without consuming the stream.
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(file.getInputStream());
+            String detectedContentType = tika.detect(bufferedInputStream);
+            
+            if (!detectedContentType.equalsIgnoreCase(mimeType)) {
+                throw new IllegalArgumentException("Content type mismatch. Declared: " + mimeType + ", Detected: " + detectedContentType);
+            }
+            
+            if (!properties.allowedMimeTypes().contains(detectedContentType)) {
+                throw new IllegalArgumentException("File Type is not allowed. Detected content type: " + detectedContentType);
+            }
+            
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Error occurred during content type detection");
+        }
     }
 
     @Transactional
@@ -154,8 +177,8 @@ public class SoundService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetSoundResponse> searchSound(String keyword, String username) {
-        return soundRepository.searchByOwner(keyword, username).stream().map(mapper::toGetResponse).toList();
+    public List<GetSoundResponse> searchSound(String keyword, String username, Pageable pageable) {
+        return soundRepository.searchByOwner(keyword, username, pageable).stream().map(mapper::toGetResponse).toList();
     }
 
 }

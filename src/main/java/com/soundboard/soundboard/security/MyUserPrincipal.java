@@ -12,6 +12,8 @@ import java.util.Collections;
 
 public class MyUserPrincipal implements UserDetails {
 
+  private static final long serialVersionUID = 1L;
+
   private final transient Users user;
 
   public MyUserPrincipal(Users user) {

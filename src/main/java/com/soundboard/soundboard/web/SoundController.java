@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.web;
 
+import com.soundboard.soundboard.models.AudioDownload;
 import com.soundboard.soundboard.models.requestModels.PatchSoundRequest;
 import com.soundboard.soundboard.models.requestModels.SoundRequestModel;
 import com.soundboard.soundboard.models.responseModels.PagedResponse;
@@ -9,6 +10,7 @@ import com.soundboard.soundboard.models.responseModels.sound.ResponseBodyModel;
 import com.soundboard.soundboard.service.SoundService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -39,6 +42,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+@Validated
 @RestController
 @RequestMapping("/api/soundboard")
 public class SoundController {
@@ -69,7 +73,11 @@ public class SoundController {
     public ResponseEntity<PagedResponse<ResponseBodyModel>> getAllSounds(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
+            @Pattern(
+                    regexp = "createdAt|recentUpdate|name|category",
+                    message = "The sortBy field only accepts the following fields: createdAt, recentUpdate, name, category"
+            )
+            @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "true") boolean ascending,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String tag,
@@ -111,9 +119,12 @@ public class SoundController {
     @GetMapping("sounds/search")
     public ResponseEntity<List<GetSoundResponse>> searchSound(
             @RequestParam @Size(max = 100) String keyword,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok().body(
-                soundService.searchSound(keyword, userDetails.getUsername())
+                soundService.searchSound(keyword, userDetails.getUsername(), pageable)
         );
     }
     
@@ -123,12 +134,12 @@ public class SoundController {
             @AuthenticationPrincipal UserDetails userDetails
     ) throws IOException {
         try {
-            Resource audioResource = soundService.getAudioFile(id, userDetails.getUsername());
+            AudioDownload audioResource = soundService.getAudioFile(id, userDetails.getUsername());
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType("audio/wav"))
+                    .contentType(MediaType.parseMediaType(audioResource.contentType()))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + audioResource.getFilename() + "\"")
-                    .body(audioResource);
+                            "attachment; filename=\"" + audioResource.audioResource().getFilename() + "\"")
+                    .body(audioResource.audioResource());
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
         }

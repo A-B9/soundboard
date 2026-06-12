@@ -64,11 +64,30 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
         return Bucket.builder().addLimit(limit).build();
     }
 
+    // vulnerable method
+    // filter keeps 1 bucket per IP, the IP becomes the key that decides which bucket the request is drawn from.
+    // X-Fordwarded-For is an ordinary HTTP request header, and anyone sending the request is able to set this header.
+    
+    // if i was an attacker trying to brute force a password login, i could change the x-forwarded-for header on each
+    // request to get unlimited numebr of request attempts. -> this will bypass teh rate limiter
+    
+    // the IP a server reads from a header can be forged.
+    /*
+    ip that a server reads from tcp connection (getRemoteAddr()) cannot be forged. attacker would have to forge the source
+    of where their packets originate from.
+    
+    stop reading the headers and instead move to read from servlet container which can resolve the real client IP using a
+    list of proxies that we define as trustworthy sources.
+    
+    can tell spring boot to tell tomcat to process the header but only when the request has arrived from a proxy ip that
+    is whitelisted, after that using the given function getRemoteAddr() returns the correct client ip
+     */
+    
+    // the header is just text the client puts in request, nothing validated at tcp/ip layer will validate it
+    
+    // this now just needs to get the real client ip from the servlet request, because the request should come from
+    // a white listed proxy server which we trust.
     private static String extractClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
         return request.getRemoteAddr();
     }
 

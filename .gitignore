@@ -41,3 +41,6 @@ build/
 .env
 /src/main/resources/application-dev.properties
 /db/password.txt
+docs/
+.agent-files/
+sound-effect-files/
