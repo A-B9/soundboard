@@ -35,7 +35,7 @@ public class UserService {
   
   private static final Logger log = LoggerFactory.getLogger(UserService.class);
   
-  private static AuditLogger auditLogger;
+  private final AuditLogger auditLogger;
   
   private final MyUserRepo userRepo;
   private final AuthenticationManager authenticationManager;

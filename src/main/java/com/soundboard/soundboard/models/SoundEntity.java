@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,6 +63,21 @@ public class SoundEntity {
         this.storedName = storedName;
         this.ownedBy = ownedBy;
         this.size = size;
+    }
+    
+    public List<String> getTags() {
+        if  (tags == null) {
+            tags = new ArrayList<>();
+        }
+        return List.copyOf(tags);
+    }
+    
+    public void setTags(List<String> tags) {
+        if  (tags == null) {
+            this.tags = new ArrayList<>();
+        } else {
+            this.tags = new ArrayList<>(tags);
+        }
     }
 
 }

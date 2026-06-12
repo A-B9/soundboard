@@ -16,4 +16,15 @@ public record PatchSoundRequest(
 
         @Size(max = 25)
         List<String> tags
-) {}
+) {
+    public PatchSoundRequest {
+        // Preserve null (means "field not provided" for partial update);
+        // copy a provided list to prevent external mutation.
+        tags = tags == null ? null : List.copyOf(tags);
+    }
+
+    @Override
+    public List<String> tags() {
+        return tags == null ? null : List.copyOf(tags);
+    }
+}

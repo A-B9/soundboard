@@ -13,6 +13,12 @@ public record PagedResponse<T>(
         boolean first,
         boolean last
 ) {
+    
+    public PagedResponse{
+        // Defensive copy of content to ensure immutability
+        content = List.copyOf(content);
+    }
+
     public static <T> PagedResponse<T> from(Page<T> source) {
         return new PagedResponse<>(
                 source.getContent(),

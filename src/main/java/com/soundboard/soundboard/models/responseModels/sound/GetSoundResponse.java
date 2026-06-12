@@ -14,4 +14,14 @@ public record GetSoundResponse(
         List<String> tags,
         Instant createdAt,
         Instant recentUpdate
-) implements ResponseBodyModel {}
+) implements ResponseBodyModel {
+    
+    public GetSoundResponse {
+        tags = tags == null ? List.of() : List.copyOf(tags);
+    }
+
+    @Override
+    public List<String> tags() {
+        return List.copyOf(tags);
+    }
+}

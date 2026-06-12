@@ -89,7 +89,8 @@ class TestMapper {
         assertThat(response.ownedBy()).isEqualTo("warrior");
         assertThat(response.createdAt()).isEqualTo(now);
         assertThat(response.category()).isNull();
-        assertThat(response.tags()).isNull();
+        // tags use a never-null contract: absent tags map to an empty list, not null
+        assertThat(response.tags()).isEmpty();
         assertThat(response.recentUpdate()).isNull();
     }
 
@@ -203,7 +204,8 @@ class TestMapper {
         assertThat(dto.ownedBy()).isEqualTo("traveller");
         assertThat(dto.createdAt()).isEqualTo(now);
         assertThat(dto.category()).isNull();
-        assertThat(dto.tags()).isNull();
+        // tags use a never-null contract: absent tags map to an empty list, not null
+        assertThat(dto.tags()).isEmpty();
         assertThat(dto.recentUpdate()).isNull();
     }
 

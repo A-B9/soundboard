@@ -14,4 +14,13 @@ public record SoundDTO(
         List<String> tags,
         Instant createdAt,
         Instant recentUpdate
-) {}
+) {
+    public SoundDTO {
+        tags = tags == null ? List.of() : List.copyOf(tags);
+    }
+
+    @Override
+    public List<String> tags() {
+        return List.copyOf(tags);
+    }
+}
