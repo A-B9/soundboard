@@ -119,9 +119,12 @@ public class SoundController {
     @GetMapping("sounds/search")
     public ResponseEntity<List<GetSoundResponse>> searchSound(
             @RequestParam @Size(max = 100) String keyword,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok().body(
-                soundService.searchSound(keyword, userDetails.getUsername())
+                soundService.searchSound(keyword, userDetails.getUsername(), pageable)
         );
     }
     

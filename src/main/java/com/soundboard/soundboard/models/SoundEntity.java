@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
@@ -20,7 +21,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "Sounds")
+@Table(name = "Sounds",
+        indexes = {
+            @Index(name = "idx_sounds_owned_by", columnList = "ownedBy")
+        }
+)
 @Setter
 @Getter
 public class SoundEntity {

@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.service;
 
+import com.soundboard.soundboard.audit.AuditLogger;
 import com.soundboard.soundboard.models.Role;
 import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.models.requestModels.ChangePasswordRequest;
@@ -13,6 +14,7 @@ import com.soundboard.soundboard.security.JWTService;
 import com.soundboard.soundboard.security.MyUserPrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,10 +27,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 
+import static com.soundboard.soundboard.audit.AuditAction.LOGIN_FAILED;
+import static com.soundboard.soundboard.audit.AuditAction.LOGIN_SUCCESSFUL;
+
 @Service
 public class UserService {
   
   private static final Logger log = LoggerFactory.getLogger(UserService.class);
+  
+  private static AuditLogger auditLogger;
   
   private final MyUserRepo userRepo;
   private final AuthenticationManager authenticationManager;
@@ -38,11 +45,13 @@ public class UserService {
   public UserService(MyUserRepo userRepo,
                      AuthenticationManager authenticationManager,
                      JWTService jwtService,
-                     PasswordEncoder passwordEncoder) {
+                     PasswordEncoder passwordEncoder,
+                     AuditLogger auditLogger) {
     this.userRepo = userRepo;
     this.authenticationManager = authenticationManager;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
+    this.auditLogger = auditLogger;
   
   }
   
@@ -75,12 +84,14 @@ public class UserService {
               );
       if (authentication.isAuthenticated()) {
         if (!(authentication.getPrincipal() instanceof MyUserPrincipal principal)) {
+          auditLogger.log(LOGIN_FAILED, "Login Attempt Failure");
           return LoginResponse.builder()
                   .username(request.username())
                   .token("")
                   .message("Invalid username or password")
                   .build();
         }
+        auditLogger.log(LOGIN_SUCCESSFUL, "Login Attempt Success");
         return LoginResponse.builder()
                 .username(request.username())
                 .token(jwtService.generateToken(request.username(), principal.getRole(), principal.isMustChangePassword()))
@@ -90,6 +101,7 @@ public class UserService {
     } catch (AuthenticationException e) {
       // intentionally vague — does not indicate whether username or password was wrong
     }
+    auditLogger.log(LOGIN_FAILED, "Login Attempt Failure");
     return LoginResponse.builder()
             .username(request.username())
             .token("")

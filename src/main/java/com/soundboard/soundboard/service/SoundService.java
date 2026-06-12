@@ -177,8 +177,8 @@ public class SoundService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetSoundResponse> searchSound(String keyword, String username) {
-        return soundRepository.searchByOwner(keyword, username).stream().map(mapper::toGetResponse).toList();
+    public List<GetSoundResponse> searchSound(String keyword, String username, Pageable pageable) {
+        return soundRepository.searchByOwner(keyword, username, pageable).stream().map(mapper::toGetResponse).toList();
     }
 
 }

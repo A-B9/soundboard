@@ -29,7 +29,7 @@ public interface SoundRepository extends JpaRepository<SoundEntity, UUID> {
     WHERE LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
     AND s.ownedBy = :username
   """)
-  List<SoundEntity> searchByOwner(@Param("keyword") String keyword, @Param("username") String username);
+  Page<SoundEntity> searchByOwner(@Param("keyword") String keyword, @Param("username") String username, Pageable pageable);
 
   Page<SoundEntity> findAllByOwnedBy(Pageable pageable, String ownedBy);
 

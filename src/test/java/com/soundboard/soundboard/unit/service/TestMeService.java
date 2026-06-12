@@ -1,5 +1,6 @@
 package com.soundboard.soundboard.unit.service;
 
+import com.soundboard.soundboard.audit.AuditLogger;
 import com.soundboard.soundboard.models.Role;
 import com.soundboard.soundboard.models.Users;
 import com.soundboard.soundboard.models.requestModels.ChangePasswordRequest;
@@ -36,12 +37,13 @@ class TestMeService {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JWTService jwtService;
     @Mock private AuthenticationManager authenticationManager;
+    @Mock private AuditLogger auditLogger;
 
     private UserService service;
 
     @BeforeEach
     void setUp() {
-        service = new UserService(userRepo, authenticationManager, jwtService, passwordEncoder);
+        service = new UserService(userRepo, authenticationManager, jwtService, passwordEncoder, auditLogger);
     }
 
     @Test
